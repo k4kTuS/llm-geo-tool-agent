@@ -11,8 +11,8 @@ Ensure you have the following installed:
 1. **Clone the Repository**
 
     ```bash
-    git clone https://github.com/yourusername/yourrepository.git
-    cd yourrepository
+    git clone git@github.com:k4kTuS/llm-geo-tool-agent.git
+    cd llm-geo-tool-agent
     ```
 
 2. **Create a Virtual Environment**
