@@ -53,3 +53,12 @@ Ensure you have the following installed:
 
 - [Streamlit Documentation](https://docs.streamlit.io/)
 - [Python Virtual Environments](https://docs.python.org/3/tutorial/venv.html)
+
+<hr>
+
+## TODOs
+
+- Change config to streamlit secrets
+- Move elements into containers and fragments to control what parts of code rerun
+- Style the tool response chat messages
+- Add logic for a message that contains both content and tool calls, combined with the hide/display tool calls setting

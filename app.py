@@ -22,25 +22,25 @@ def write_message(message):
 
     has_tool_info = "tool_calls" in message.additional_kwargs or message.type == "tool"
     if has_tool_info and st.session_state["show_tool_calls"]:
-        st.markdown(message.pretty_repr().replace("\n", "  \n"), unsafe_allow_html=True)
+        st.chat_message("tool", avatar="🛠️").markdown(message.pretty_repr().replace("\n", "  \n"), unsafe_allow_html=True)
     elif message.type == "ai" and not has_tool_info:
-        st.chat_message("ai").markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
+        st.chat_message("ai", avatar="🌿").markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
 
 def rewrite_chat_history():
     chat_history = get_chat_history(CHAT_USER)
     for m in chat_history.messages:
         write_message(m)
 
-st.title("PoliRuralPlus Chat Assistant")
+st.title("🌿 PoliRuralPlus Chat Assistant")
 
 st.session_state["chat_prompted"] = False
 
 with st.sidebar as sidebar:
     st.subheader("Chat management")
     
-    switch = st.checkbox("Show tool calls details")
+    tools_on = st.toggle("Show tool calls details")
 
-    if switch:
+    if tools_on:
         st.session_state["show_tool_calls"] = True
     else:
         st.session_state["show_tool_calls"] = False
@@ -48,7 +48,7 @@ with st.sidebar as sidebar:
     if st.button("Clear chat history"):
         clear_chat_history(CHAT_USER)
         with st.sidebar:
-            st.info("Chat history cleared.")
+            st.toast("Chat history cleared.", icon="🧹")
 
     st.subheader("Area of interest")
 
@@ -100,22 +100,23 @@ if prompt := st.chat_input(placeholder="Can you describe the selected area in te
     rewrite_chat_history()
     st.session_state["chat_prompted"] = True
 
-    last_message_id = 0
-    for chunk in app.stream(
-        {
-            "messages": [
-                SystemMessage(content=SYSTEM_MESSAGE_TEMPLATE),
-                HumanMessage(content=prompt)],
-            "coords": coords,
-            "highlighted_square": highlighted_square,
-        },
-        config=config,
-        stream_mode="values"
-    ):
-        for i in range(last_message_id, len(chunk["messages"])):
-            message = chunk["messages"][i]
-            write_message(message)   
-        last_message_id = len(chunk["messages"])
+    with st.spinner("Give me a second, I am thinking..."):
+        last_message_id = 0
+        for chunk in app.stream(
+            {
+                "messages": [
+                    SystemMessage(content=SYSTEM_MESSAGE_TEMPLATE),
+                    HumanMessage(content=prompt)],
+                "coords": coords,
+                "highlighted_square": highlighted_square,
+            },
+            config=config,
+            stream_mode="values"
+        ):
+            for i in range(last_message_id, len(chunk["messages"])):
+                message = chunk["messages"][i]
+                write_message(message)   
+            last_message_id = len(chunk["messages"])
 
 if not st.session_state["chat_prompted"]:
     rewrite_chat_history()

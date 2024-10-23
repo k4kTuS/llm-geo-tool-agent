@@ -70,7 +70,7 @@ def load_model():
         model.load_model("models/hotels_cbm")
         return model
 
-@st.cache_resource
+@st.cache_data
 def load_features():
     hotels_data = pd.read_csv("data/hotels.csv", index_col=0)
     hotels_data_X = hotels_data.drop(columns=['lodging'])
