@@ -16,29 +16,18 @@ from langgraph.prebuilt import InjectedState
 import hotels_model
 from config import *
 
+# DEM
 def count_elevation_zones(elevation_array):
     zone_counts = {name: 0 for _, _, name in elevation_ranges}  # Initialize counts
-    
+
     for min_val, max_val, zone_name in elevation_ranges:
         # Count values in the current range
         count = np.sum((elevation_array >= min_val) & (elevation_array < max_val))
         zone_counts[zone_name] += count
-    
+
     return zone_counts
 
-def rgb2elevation(image):
-    # Reference points - Snezka, Labe
-    elevation_1, hue_1 = (1603, 14)
-    elevation_2, hue_2 = (115, 78)
-        
-    hue_channel = np.array(image.convert('HSV'))[:, :, 0]
-
-    # Linear interpolation for each hue value
-    elevation_masl = ((elevation_2 - elevation_1) / (hue_2 - hue_1)) * (hue_channel - hue_1) + elevation_1
-
-    # Clip values to avoid unrealistic elevations outside of the given hue range
-    return np.clip(elevation_masl, elevation_2, elevation_1)
-
+# OLU
 def get_color_counts(image, n_colors=10):
     pixels = np.array(image)
     pixels = pixels.reshape(-1, 3)
@@ -143,16 +132,17 @@ def get_elevation_data(
     Args:
         coords: Map bounding box coordinates.
     """
-    image = get_map(coords, "DEM_color")
-    elevations = rgb2elevation(image.convert('RGB'))
+    image = get_map(coords, "DEM_MASL")
+    elevations = np.array(image)
     zones_data = count_elevation_zones(elevations)
     
     n_pixels = len(image.getdata())
     bbox_area = get_area(coords)
-    zones_areas = {k: v / n_pixels * bbox_area for k, v in zones_data.items()}
+    zones_ratios = {k: v / n_pixels for k, v in zones_data.items()}
     
-    return f"Elevation data:\n"\
-        + "\n".join([f"{k}: {v:.2f} km squared" for k, v in zones_areas.items() if v != 0])
+    return f"Average elevation: {elevations.mean():.2f} meters\n\n"\
+        + "Elevation zones:\n"\
+        + "\n".join([f"{k}: {v * bbox_area:.2f} km squared ({v*100:.2f}%)" for k, v in zones_ratios.items() if v != 0])
 
 @tool(parse_docstring=True)
 def get_transport_data(

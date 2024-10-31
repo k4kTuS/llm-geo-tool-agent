@@ -46,12 +46,28 @@ map_config={
 
 # Used with DEM
 elevation_ranges = [
-    (0, 500, "Lowland"),
-    (500, 1500, "Upland"),
-    (1500, 2500, "Highland"),
-    (2500, 3500, "Alpine"),
-    (3500, 4500, "Subnival"),
-    (4500, np.inf, "Nival")
+    (0, 50, "Coastal Plain"),
+    (50, 100, "Floodplain"),
+    (100, 200, "Low Coastal Plateau"),
+    (200, 300, "Interior Plateau"),
+    (300, 500, "Low Hill Country"),
+    (500, 700, "High Hill Country"),
+    (700, 900, "Low Mountainous Area"),
+    (900, 1200, "Moderate Mountainous Area"),
+    (1200, 1500, "High Mountainous Area"),
+    (1500, 1800, "Subalpine Low"),
+    (1800, 2100, "Subalpine High"),
+    (2100, 2400, "Lower Alpine Zone"),
+    (2400, 2700, "Mid Alpine Zone"),
+    (2700, 3000, "Upper Alpine Zone"),
+    (3000, 3300, "Lower Subnival Zone"),
+    (3300, 3600, "Mid Subnival Zone"),
+    (3600, 4000, "Upper Subnival Zone"),
+    (4000, 4500, "Lower Nival Zone"),
+    (4500, 5000, "Upper Nival Zone"),
+    (5000, 5500, "Lower Glacial Zone"),
+    (5500, 6000, "Mid Glacial Zone"),
+    (6000, np.inf, "Upper Glacial Zone")
 ]
 
 # Used with OLU
