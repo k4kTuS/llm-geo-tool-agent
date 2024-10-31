@@ -5,6 +5,7 @@ import requests
 from io import BytesIO
 from PIL import Image
 from pyproj import Transformer
+from scipy.spatial import KDTree
 from shapely.geometry import Polygon
 
 # Tools
@@ -28,7 +29,7 @@ def count_elevation_zones(elevation_array):
     return zone_counts
 
 # OLU
-def get_color_counts(image, n_colors=10):
+def get_color_counts(image, n_colors=None):
     pixels = np.array(image)
     pixels = pixels.reshape(-1, 3)
 
@@ -37,12 +38,25 @@ def get_color_counts(image, n_colors=10):
 
     # Convert back to normal RGB tuples
     unique_pixels = unique_pixels.view(pixels.dtype).reshape(-1, 3)
-
-    # Combine pixels and their counts, and sort by count
-    sorted_pixels = sorted(zip(map(tuple,unique_pixels), counts), key=lambda x: x[1], reverse=True)
-
+    # Combine pixels and their counts
+    pixel_counts = zip(map(tuple, unique_pixels), counts)
+    # Prepare KDTree for color mapping
+    LU_colors = list(LU_rgb_mapping.values())
+    rgb_counts = {tuple(rgb): 0 for rgb in LU_colors}
+    kdtree = KDTree(LU_colors)
+    # Get color counts for LU colors
+    for rgb, cnt in pixel_counts:
+        if rgb in rgb_counts:
+            rgb_counts[rgb] += cnt
+        else:
+            # Map missing colors using KDTree and add the count
+            _, index = kdtree.query(rgb)
+            closest_color = tuple(LU_colors[index])
+            rgb_counts[closest_color] += cnt
+    # Sort by counts
+    sorted_pixel_counts = sorted([(k,v) for k,v in rgb_counts.items() if v != 0], reverse=True, key=lambda x: x[1])
     # Get the top n colors
-    return sorted_pixels[:n_colors]
+    return sorted_pixel_counts[:n_colors]
 
 # Other helpers
 def get_map(coords, endpoint, alt_params={}):
@@ -82,14 +96,14 @@ def get_open_land_use(
     
     bbox_area = get_area(coords)
     n_pixels = len(image.getdata())
-    top_colors = get_color_counts(image, n_colors=10)
+    rgb_counts = get_color_counts(image)
     
-    land_uses = [color2olu_mapping[rgb2color_mapping[v[0]]] for v in top_colors]
-    land_areas = [v[1]/n_pixels * bbox_area for v in top_colors]
+    land_uses = [rgb_LU_mapping[rgb] for rgb,_ in rgb_counts]
+    land_areas = [cnt/n_pixels * bbox_area for _,cnt in rgb_counts]
     
     return f"Map Area: {bbox_area:.2f} km squared\n\n"\
         + "Land use information:\n"\
-        + "\n".join([f"{v[0]} - Area: {v[1]:.2f} km squared" for v in zip(land_uses, land_areas)])
+        + "\n".join([f"{lu} - Area: {area:.2f} km squared" for lu, area in zip(land_uses, land_areas)])
 
 @tool(parse_docstring=True)
 def get_monthly_average_temperature(

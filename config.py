@@ -71,29 +71,34 @@ elevation_ranges = [
 ]
 
 # Used with OLU
-# Working only for a hard-coded bounding box, different areas can have other colors
-rgb2color_mapping = {
-    (240, 120, 100) : 'red',
-    (100, 100, 100) : 'darkgrey',
-    (230, 230, 110) : 'yellow',
-    (180, 120, 240) : 'purple',
-    (120, 170, 150) : 'darkgreen',
-    (220, 160, 220) : 'lightpurple',
-    (110, 230, 110) : 'lightgreen',
-    (200, 220, 220) : 'lightblue',
-    (220, 220, 220) : 'whitegrey',
-    (240, 240, 240) : 'white'
+LU_rgb_mapping = {
+    'Primary Production': (180,230,110),
+    'Agriculture': (230,230,110),
+    'Forestry': (110,230,110),
+    'Mining And Quarrying': (180,200,110),
+    'Secondary Production': (100,100,100),
+    'Manufacturing Of Wood And Wood Based Products': (140,100,100),
+    'Manufacturing Of Machinery': (50,100,100),
+    'Energy Production': (150,150,40),
+    'Other Industry': (100,100,100),
+    'Tertiary Production': (150,150,150),
+    'Commercial Services': (150,170,130),
+    'Financial Professional And Information Services': (190,170,130),
+    'Community Services': (210,170,150),
+    'Cultural Entertainment And Recreational Services': (120,170,150),
+    'Transport Network Logistics And Utilities': (180,120,240),
+    'Transport Networks': (220,160,220),
+    'Water Transport': (140,120,240),
+    'Logistical And Storage Services': (230,200,200),
+    'Utilities': (250,220,220),
+    'Residential Use': (240,120,100),
+    'Permanent Residential Use': (240,60,40),
+    'Residential Use With Other Compatible Uses': (240,84,100),
+    'Other Uses': (220,220,220),
+    'Transitional Areas / Natural Areas Not In Other Economic Use': (200,220,220),
+    'Land Areas Not In Other Economic Use': (200,255,200),
+    'Water Areas Not In Other Economic Use': (200,200,255),
+    'Areas Without Any Specified Planned Land Use': (230,240,240),
+    'Not Known Use': (240,240,240)
 }
-
-color2olu_mapping = {
-    'darkgreen': 'Forest Zone',
-    'darkgrey': 'Industrial Zone',
-    'lightblue': 'Waterbody Zone',
-    'lightgreen': 'Park Zone',
-    'purple': 'Road Communication Zone',
-    'lightpurple': 'Pedestrian Zone',
-    'red': 'Commercial Zone',
-    'whitegrey': 'Parking Zone',
-    'white': 'Utilities Zone',
-    'yellow': 'Residential Zone'
-}
+rgb_LU_mapping = {v: k for k, v in LU_rgb_mapping.items()}

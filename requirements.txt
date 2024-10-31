@@ -13,6 +13,7 @@ Pillow
 pyproj
 requests
 scikit-learn
+scipy
 shapely
 streamlit
 streamlit_folium
