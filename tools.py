@@ -176,20 +176,15 @@ def get_transport_data(
 def get_eurostat_population_data(
     coords: Annotated[list[float], InjectedState("coords")]
 ) -> str:
-    """Return processed eurostat data about total or employed population. The bounding box coordinates will be provided during runtime.
+    """Return processed eurostat data about total population. The bounding box coordinates will be provided during runtime.
     
     Args:
         coords: Map bounding box coordinates.
     """
     image = get_map(coords, "EUROSTAT_2021", {"layer": "total_population_eurostat_griddata_2021"})
-    total_population = np.sum(np.unique(np.array(image)))
+    total_population = int(np.sum(np.unique(np.array(image))))
     
-    image = get_map(coords, "EUROSTAT_2021", {"layer": "employed_population_eurostat_griddata_2021"})
-    employed_population = np.sum(np.unique(np.array(image)))
-    
-    return f"Eurostat population data:\n"\
-        + f"Total population: {total_population}\n"\
-        + f"Employed population: {employed_population}"
+    return f"Eurostat - Total population: {total_population}"
 
 @tool(parse_docstring=True)
 def estimate_hotel_suitability(
