@@ -10,7 +10,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from streamlit_folium import st_folium
 from agent import build_graph, get_chat_history, clear_chat_history, SYSTEM_MESSAGE_TEMPLATE
-from utils import get_api_coords
+from utils import *
 
 CHAT_USER = "testingUser1"
 
@@ -65,8 +65,8 @@ with st.sidebar as sidebar:
             'polygon': False,
             'circle': False,
             'circlemarker': False,
-            'marker': False,
-            'rectangle': True,
+            'marker': True, # Potentional hotel site
+            'rectangle': True, # Area of interest
         },
         edit_options={
             'edit': True,
@@ -74,25 +74,8 @@ with st.sidebar as sidebar:
         },
         # Custom JS that ensures only one rectangle is present at a time on the map
         on={
-            "add": JsCode(
-                """
-                function(e){
-                    if (window.last_drawn_bbox) {
-                        drawnItems.removeLayer(window.last_drawn_bbox);
-                    }
-                        window.last_drawn_bbox = e.target;
-                }
-                """
-                ),
-            "remove": JsCode(
-                """
-                function(e){
-                    if (e.target === window.last_drawn_bbox) {
-                        window.last_drawn_bbox = null;
-                    }
-                }
-                """
-                ),
+            "add": JsCode(open("assets/js/handleAddDrawing.js", "r").read()),
+            "remove": JsCode(open("assets/js/handleRemoveDrawing.js", "r").read()),
         }
     )
     draw.add_to(m)
@@ -106,18 +89,16 @@ with st.sidebar as sidebar:
         returned_objects=["all_drawings"],
         )
     
-    if map_data["all_drawings"] and len(map_data["all_drawings"]) == 1:
-        st.session_state["selected_bbox"] = map_data["all_drawings"][0]["geometry"]["coordinates"][0]
-    else:
-        st.session_state["selected_bbox"] = None
+    st.session_state["selected_bbox"] = parse_drawing_coords(map_data, "Polygon")
+    st.session_state["hotel_site_marker"] = parse_drawing_coords(map_data, "Point")
 
 if prompt := st.chat_input(placeholder="Can you describe the selected area in terms of Open Land Use?"):
     if st.session_state["selected_bbox"] is None:
         st.toast("Please draw a rectangle on the map to select the area of interest.\n\
                  You can only have one area of interest selected at a time", icon="🗺️")
     else:
-        coords = get_api_coords(st.session_state["selected_bbox"])
-        highlighted_square = [49.74, 13.36, 49.76, 13.38]
+        coords = get_api_coords(st.session_state["selected_bbox"][0])
+        hotel_site_marker = st.session_state["hotel_site_marker"]
         config = {"configurable": {"session_id": CHAT_USER}}
 
         app = build_graph()
@@ -133,7 +114,7 @@ if prompt := st.chat_input(placeholder="Can you describe the selected area in te
                         SystemMessage(content=SYSTEM_MESSAGE_TEMPLATE),
                         HumanMessage(content=prompt)],
                     "coords": coords,
-                    "highlighted_square": highlighted_square,
+                    "hotel_site_marker": hotel_site_marker,
                 },
                 config=config,
                 stream_mode="values"

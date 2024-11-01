@@ -9,7 +9,7 @@ from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 
 from tools import get_all_tools
-from typing_extensions import Annotated, TypedDict
+from typing_extensions import Annotated, TypedDict, Optional
 
 import streamlit as st
 
@@ -30,11 +30,11 @@ class AgentState(TypedDict):
     Attributes:
         messages: List of current chat messages
         coords: Latitude and longitude bounding box coordinates.
-        highlighted_square: Coordinates of highlighted square on map.
+        hotel_site_marker: Coordinates of a potential hotel site marker.
     """
     messages: Annotated[list, add_messages]
     coords: list[float]
-    highlighted_square: list[float]
+    hotel_site_marker: Optional[list[float]]
 
 def get_chat_history(session_id: str) -> InMemoryChatMessageHistory:
     if f'chat_history_{session_id}' not in st.session_state:

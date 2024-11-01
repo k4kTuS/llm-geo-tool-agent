@@ -2,7 +2,7 @@ import datetime
 import numpy as np
 
 # Tools
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Optional
 
 from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
@@ -117,21 +117,27 @@ def get_eurostat_population_data(
 
 @tool(parse_docstring=True)
 def estimate_hotel_suitability(
-    highlighted_square: Annotated[list[float], InjectedState("highlighted_square")]
+    hotel_site_marker: Annotated[Optional[list[float]], InjectedState("hotel_site_marker")]
 ) -> str:
     """Using data about hotels and other establishments, estimate the number of hotels that could be suitable
-    for a highlighted area. The highlighted square data will be provided during runtime.
+    for the marked site. The site marker will be provided during runtime.
     
     Args:
-        highlighted_square: Highlighted square coordinates.
+        hotel_site_marker: Highlighted hotel site coordinates.
     """
+    if hotel_site_marker is None:
+        return "No hotel site marker specified."
+
     features = hotels_model.load_features()
     model = hotels_model.load_model()
 
-    idx = '_'.join([str(v) for v in highlighted_square])
-    square_features = features.loc[idx]
+    square_list = features.index.tolist()[1:]
+    site_square = find_square_for_marker(square_list, hotel_site_marker)
+    if site_square is None:
+        return "There is no available data for the marked site."
 
-    return f"Estimated number of hotels suitable for highlighted square: {model.predict(square_features):.2f}"
+    square_features = features.loc[site_square]
+    return f"Estimated number of hotels suitable for marked site: {model.predict(square_features):.2f}"
 
 def get_all_tools():
     return [

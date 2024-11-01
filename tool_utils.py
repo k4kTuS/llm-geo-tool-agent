@@ -73,3 +73,12 @@ def get_area(coords):
     polygon = Polygon(ring)
     # Polygon area in km2
     return polygon.area/1000000
+
+def find_square_for_marker(square_list, marker_coords):
+    m_lon, m_lat = marker_coords
+    for square in square_list:
+        lat1, lon1, lat2, lon2 = map(float, square.split('_'))
+
+        if lat1 <= m_lat <= lat2 and lon1 <= m_lon <= lon2:
+            return square
+    return None
