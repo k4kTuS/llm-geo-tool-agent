@@ -94,8 +94,8 @@ with st.sidebar as sidebar:
 
 if prompt := st.chat_input(placeholder="Can you describe the selected area in terms of Open Land Use?"):
     if st.session_state["selected_bbox"] is None:
-        st.toast("Please draw a rectangle on the map to select the area of interest.\n\
-                 You can only have one area of interest selected at a time", icon="🗺️")
+        st.toast("Please draw a rectangle on the map to select the area of interest.", icon="🗺️")
+        st.toast("You must have one area of interest selected at a time.", icon="🗺️")
     else:
         coords = get_api_coords(st.session_state["selected_bbox"][0])
         hotel_site_marker = st.session_state["hotel_site_marker"]

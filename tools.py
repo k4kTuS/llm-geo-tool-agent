@@ -23,16 +23,21 @@ def get_open_land_use(
     """
     image = get_map(coords, "OLU_EU")
     
-    bbox_area = get_area(coords)
     n_pixels = len(image.getdata())
     rgb_counts = get_color_counts(image)
     
     land_uses = [rgb_LU_mapping[rgb] for rgb,_ in rgb_counts]
-    land_areas = [cnt/n_pixels * bbox_area for _,cnt in rgb_counts]
+    land_ratios = [cnt/n_pixels for _,cnt in rgb_counts]
+
+    bbox_area = get_area(coords)
+    unit = "km squared"
+    if bbox_area < 1:
+        bbox_area *= 1000_000
+        unit = "m squared"
     
-    return f"Map Area: {bbox_area:.2f} km squared\n\n"\
-        + "Land use information:\n"\
-        + "\n".join([f"{lu} - Area: {area:.2f} km squared" for lu, area in zip(land_uses, land_areas)])
+    return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
+        + "Land use information for biggest zones:\n"\
+        + "\n".join([f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)" for lu, ratio in zip(land_uses, land_ratios) if ratio > 0.05])
 
 @tool(parse_docstring=True)
 def get_monthly_average_temperature(
