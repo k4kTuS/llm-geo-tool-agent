@@ -63,9 +63,7 @@ def get_map(coords, endpoint, alt_params={}):
     return Image.open(BytesIO(response.content))
 
 def get_area(coords):
-    # Initialize a Transformer to convert from WGS84 (EPSG:4326) to a projected system
-    # EPSG:4326 is latitude/longitude in degrees, EPSG:3395 is Pseudo Mercator in meters
-    transformer = Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
+    transformer = Transformer.from_crs("EPSG:4326", "EPSG:3035", always_xy=True)
     # Transform coordinates - first array containts longitudes, second latitudes
     lng, lat = transformer.transform([coords[1], coords[3]], [coords[0], coords[2]])
     # Create polygon ring
