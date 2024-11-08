@@ -1,5 +1,9 @@
 import datetime
 import numpy as np
+import pandas as pd
+import requests
+
+from statsmodels.tsa.arima.model import ARIMA
 
 # Tools
 from typing_extensions import Annotated, Optional
@@ -53,14 +57,15 @@ def get_monthly_average_temperature(
     image = get_map(coords, "climate_era5_temperature_last_5yrs_month_avg", {"TIME": f"2020{month}01"})
     
     month_name = datetime.datetime.strptime(month, "%m").strftime("%B")
-    return f"Average temperature in {month_name}: {np.array(image).mean():.2f} degrees Celsius."
+    return f"Average temperature in {month_name}: {np.array(image).mean():.2f} °C"
 
 @tool(parse_docstring=True)
-def get_monthly_average_temperature_prediction(
+def get_monthly_average_temperature_2030_prediction(
     month: str,
     coords: Annotated[list[float], InjectedState("coords")]
 ) -> str:
-    """Return processed prediction of monthly average temperature data in year 2030. The bounding box coordinates will be provided during runtime.
+    """Get temperature prediction for long future for a selected area. Valid only for predictions for year 2030.
+    The bounding box coordinates will be provided during runtime.
     
     Args:
         month: Month in the format of MM
@@ -69,7 +74,7 @@ def get_monthly_average_temperature_prediction(
     image = get_map(coords, "climate_ipcc_rcp45_temperature_2050s_month_avg", {"TIME": f"2030{month}01"})
     
     month_name = datetime.datetime.strptime(month, "%m").strftime("%B")
-    return f"Predicted average temperature in {month_name} in year 2030: {np.array(image).mean():.2f} degrees Celsius."
+    return f"Predicted average temperature in {month_name} in year 2030: {np.array(image).mean():.2f} °C"
 
 @tool(parse_docstring=True)
 def get_elevation_data(
@@ -144,13 +149,56 @@ def estimate_hotel_suitability(
     square_features = features.loc[site_square]
     return f"Estimated number of hotels suitable for marked site: {model.predict(square_features):.2f}"
 
+@tool(parse_docstring=True)
+def predict_temperature(
+    steps: int,
+    coords: Annotated[list[float], InjectedState("coords")]
+) -> str:
+    """Predict the temperature of a selected area starting from today's date. Can handle even longer periods of time.
+    The bounding box coordinates will be provided during runtime.
+    
+    Args:
+        steps: How long ahead should the prediction be, defined in days. 0 means getting temperature for today.
+        coords: Map bounding box coordinates used to calculate the center of the area used for prediction.
+    """
+    api_url = "https://api.open-meteo.com/v1/forecast"
+
+    lat, lon = [coords[0] + (coords[2] - coords[0]) / 2, coords[1] + (coords[3] - coords[1]) / 2]
+
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "current": "temperature_2m",
+        "hourly": "temperature_2m",
+        "past_days": 92,
+        "forecast_days": 0,
+        "timezone": "UTC",
+    }
+
+    response = requests.get(api_url, params=params)
+
+    if steps == 0:
+        return f"Current temperature: {response.json()['current']['temperature_2m']:.2f} °C"
+
+    df = pd.DataFrame(response.json()["hourly"])
+    df['time'] = pd.to_datetime(df['time'])
+    df.set_index('time', inplace=True)
+    df_daily = df.resample('D').mean()['temperature_2m']
+
+    model = ARIMA(df_daily, order=(1,0,0), trend='n')
+    model_fit = model.fit()
+    preds = model_fit.forecast(steps=steps)
+
+    return f"Predicted temperatures for the next {steps} days:\n" + "\n".join([f"{pred:.2f} °C" for pred in preds])
+
 def get_all_tools():
     return [
         get_open_land_use,
         get_monthly_average_temperature,
-        get_monthly_average_temperature_prediction,
+        get_monthly_average_temperature_2030_prediction,
         get_elevation_data,
         get_transport_data,
         get_eurostat_population_data,
-        estimate_hotel_suitability
+        estimate_hotel_suitability,
+        predict_temperature
     ]
