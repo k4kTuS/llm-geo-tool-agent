@@ -58,7 +58,10 @@ Ensure you have the following installed:
 
 ## TODOs
 
-- Change config to streamlit secrets
+- ~~Change config to streamlit secrets~~
 - Move elements into containers and fragments to control what parts of code rerun
 - Style the tool response chat messages
-- Add logic for a message that contains both content and tool calls, combined with the hide/display tool calls setting
+- ~~Add logic for a message that contains both content and tool calls, combined with the hide/display tool calls setting~~
+- Add tab with visualizations of loaded resources
+- Add chat messages persistence (DynamoDB / Google sheets / Langsmith logging)
+- Add interactive chat input examples
