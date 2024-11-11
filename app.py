@@ -1,4 +1,3 @@
-import configparser
 import os
 import folium
 import streamlit as st
@@ -14,10 +13,12 @@ from utils import *
 
 CHAT_USER = "testingUser1"
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-os.environ['OPENAI_API_KEY'] = config['OPENAI']['api_key']
+st.set_page_config(
+    page_title="PoliRuralPlus Chat Assistant",
+    page_icon="🌿",
+    layout="centered",
+    initial_sidebar_state="auto",
+)
 
 def write_message(message):
     if message.type == "human":
