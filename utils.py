@@ -1,3 +1,6 @@
+import streamlit as st
+
+from agent import get_chat_history
 
 def get_api_coords(coords):
     """
@@ -27,3 +30,19 @@ def parse_drawing_coords(map_data, drawing_type):
     if count != 1:
         return None
     return last_drawing["geometry"]["coordinates"]
+
+def write_message(message):
+    if message.type == "human":
+        st.chat_message("human").write(message.content)
+        return
+
+    has_tool_info = "tool_calls" in message.additional_kwargs or message.type == "tool"
+    if has_tool_info and st.session_state["show_tool_calls"]:
+        st.chat_message("tool", avatar="🛠️").markdown(message.pretty_repr().replace("\n", "  \n"), unsafe_allow_html=True)
+    elif message.type == "ai" and not has_tool_info:
+        st.chat_message("ai", avatar="🌿").markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
+
+def rewrite_chat_history():
+    chat_history = get_chat_history(st.session_state["user"])
+    for m in chat_history.messages:
+        write_message(m)
