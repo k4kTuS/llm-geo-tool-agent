@@ -1,7 +1,7 @@
+from io import BytesIO
+
 import numpy as np
 import requests
-
-from io import BytesIO
 from PIL import Image
 from pyproj import Transformer
 from scipy.spatial import KDTree
