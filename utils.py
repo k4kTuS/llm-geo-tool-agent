@@ -1,3 +1,5 @@
+import re
+
 import streamlit as st
 
 from langchain_core.messages import BaseMessage
@@ -52,6 +54,10 @@ def rewrite_chat_history():
         write_message(m)
 
 def add_pill_to_chat_input(pill):
+    # Remove the emoji from the pill
+    if pill is not None:
+        pill = re.sub(r'^:[a-z_]+: ', '', pill)
+
     js_pill = f'"{pill}"' if pill else "null"
     js = f"""
         <script>
