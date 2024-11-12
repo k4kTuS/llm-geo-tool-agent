@@ -1,6 +1,7 @@
 import streamlit as st
 
 from langchain_core.messages import BaseMessage
+from streamlit.components.v1 import html
 
 from agent import get_chat_history
 
@@ -49,3 +50,19 @@ def rewrite_chat_history():
     chat_history = get_chat_history(st.session_state["user"])
     for m in chat_history.messages:
         write_message(m)
+
+def add_pill_to_chat_input(pill):
+    js_pill = f'"{pill}"' if pill else "null"
+    js = f"""
+        <script>
+            function insertText(dummy_var_to_force_repeat_execution) {{
+                var chatInput = parent.document.querySelector('textarea[data-testid="stChatInputTextArea"]');
+                var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+                nativeInputValueSetter.call(chatInput, {js_pill});
+                var event = new Event('input', {{bubbles: true}}); 
+                chatInput.dispatchEvent(event);
+            }}
+            insertText(42);
+        </script>
+        """
+    html(js, height=0, width=0)

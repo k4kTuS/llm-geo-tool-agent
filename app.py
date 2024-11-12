@@ -59,7 +59,12 @@ def show_chat_app():
         st.session_state["selected_bbox"] = parse_drawing_coords(map_data, "Polygon")
         st.session_state["hotel_site_marker"] = parse_drawing_coords(map_data, "Point")
 
-    if prompt := st.chat_input(placeholder="Can you describe the selected area in terms of Open Land Use?"):
+    
+    examples = [line.rstrip() for line in open('resources/example_questions.txt')]
+    selected = st.pills("What do you want to talk about?", examples)
+    add_pill_to_chat_input(selected)
+
+    if prompt := st.chat_input(placeholder="Ask me anything..."):
         if st.session_state["selected_bbox"] is None:
             st.toast("Please draw a rectangle on the map to select the area of interest.", icon="🗺️")
             st.toast("You must have one area of interest selected at a time.", icon="🗺️")
