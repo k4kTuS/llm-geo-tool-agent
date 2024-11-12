@@ -59,10 +59,11 @@ def show_chat_app():
         st.session_state["selected_bbox"] = parse_drawing_coords(map_data, "Polygon")
         st.session_state["hotel_site_marker"] = parse_drawing_coords(map_data, "Point")
 
-    
-    examples = [line.rstrip() for line in open('resources/example_questions.txt')]
-    selected = st.pills("What do you want to talk about?", examples)
-    add_pill_to_chat_input(selected)
+    examples_expander = st.expander("Click to select some example questions", icon="🔍")
+    with examples_expander:
+        examples = [line.rstrip() for line in open('resources/example_questions.txt')]
+        selected = st.pills("What do you want to talk about?", examples)
+        add_pill_to_chat_input(selected)
 
     if prompt := st.chat_input(placeholder="Ask me anything..."):
         if st.session_state["selected_bbox"] is None:
