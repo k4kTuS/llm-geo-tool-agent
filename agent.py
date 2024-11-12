@@ -11,8 +11,8 @@ import streamlit as st
 
 from tools import get_all_tools
 
-config = configparser.ConfigParser()
-config.read('config.ini')
+cfg = configparser.ConfigParser()
+cfg.read('config.ini')
 
 SYSTEM_MESSAGE_TEMPLATE = """
 You are a helpful assistant working with geographical data. Some questions will be tied to an area defined by bounding box coordinates.
@@ -46,7 +46,7 @@ def clear_chat_history(session_id: str):
 @st.cache_resource
 def build_graph():
     llm = ChatOpenAI(
-        model=config['OPENAI']['model_id'],
+        model=cfg['OPENAI']['model_id'],
         temperature=0,
         max_retries=2,
     )
@@ -65,7 +65,7 @@ def build_graph():
     def call_model(state: AgentState, config: RunnableConfig):
         chat_history = get_chat_history(config["configurable"]["session_id"])
         messages = list(chat_history.messages) + state["messages"]
-        response = llm_with_tools.invoke(messages)
+        response = llm_with_tools.with_config({"run_name": cfg['LANGSMITH']['model_run_name']}).invoke(messages)
         return {"messages": [response]}
 
     def filter_messages(messages: list):
