@@ -64,4 +64,4 @@ Ensure you have the following installed:
 - ~~Add logic for a message that contains both content and tool calls, combined with the hide/display tool calls setting~~
 - Add tab with visualizations of loaded resources
 - Add chat messages persistence (DynamoDB / Google sheets / Langsmith logging)
-- Add interactive chat input examples
+- ~~Add interactive chat input examples~~
