@@ -7,10 +7,12 @@ langchain-community
 langchain-groq
 langchain-openai
 langgraph
+langsmith
 numpy
 pandas
 Pillow
 pyproj
+python-dotenv
 requests
 scikit-learn
 scipy

@@ -1,5 +1,6 @@
 import time
 
+from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
 import streamlit as st
 from streamlit_folium import st_folium
@@ -7,6 +8,8 @@ from streamlit_folium import st_folium
 from agent import build_graph, clear_chat_history, SYSTEM_MESSAGE_TEMPLATE
 from drawmap import DrawMap
 from utils import *
+
+load_dotenv()
 
 st.set_page_config(
     page_title="PoliRuralPlus Chat Assistant",
