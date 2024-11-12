@@ -74,7 +74,16 @@ def show_chat_app():
         else:
             coords = get_api_coords(st.session_state["selected_bbox"][0])
             hotel_site_marker = st.session_state["hotel_site_marker"]
-            config = {"configurable": {"session_id": st.session_state["user"]}}
+            config = {
+                "configurable": {
+                    "session_id": st.session_state["user"],
+                },
+                "metadata": {
+                    "bounding-box": coords,
+                    "user": st.session_state["user"],
+                    "hotel_site_marker": hotel_site_marker 
+                },
+            }
 
             app = build_graph()
 
