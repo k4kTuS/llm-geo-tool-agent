@@ -1,6 +1,8 @@
+import configparser
 import time
 
 from dotenv import load_dotenv
+from langchain import callbacks
 from langchain_core.messages import HumanMessage, SystemMessage
 import streamlit as st
 from streamlit_folium import st_folium
@@ -10,6 +12,11 @@ from drawmap import DrawMap
 from utils import *
 
 load_dotenv()
+cfg = configparser.ConfigParser()
+cfg.read('config.ini')
+
+if "message_to_run_ids" not in st.session_state:
+    st.session_state["message_to_run_ids"] = {}
 
 st.set_page_config(
     page_title="PoliRuralPlus Chat Assistant",
@@ -45,6 +52,7 @@ def show_chat_app():
 
         if st.button("Clear chat history"):
             clear_chat_history(st.session_state["user"])
+            st.session_state["message_to_run_ids"] = {}
             st.toast("Chat history cleared.", icon="🧹")
 
         st.subheader("Area of interest")
@@ -91,22 +99,27 @@ def show_chat_app():
             st.session_state["chat_prompted"] = True
 
             with st.spinner("Give me a second, I am thinking..."):
-                last_message_id = 0
-                for chunk in app.stream(
-                    {
-                        "messages": [
-                            SystemMessage(content=SYSTEM_MESSAGE_TEMPLATE),
-                            HumanMessage(content=prompt)],
-                        "coords": coords,
-                        "hotel_site_marker": hotel_site_marker,
-                    },
-                    config=config,
-                    stream_mode="values",
-                ):
-                    for i in range(last_message_id, len(chunk["messages"])):
-                        message = chunk["messages"][i]
-                        write_message(message)
-                    last_message_id = len(chunk["messages"])
+                with callbacks.collect_runs() as cb:
+                    last_message_id = 0
+                    for chunk in app.stream(
+                        {
+                            "messages": [
+                                SystemMessage(content=SYSTEM_MESSAGE_TEMPLATE),
+                                HumanMessage(content=prompt)],
+                            "coords": coords,
+                            "hotel_site_marker": hotel_site_marker,
+                        },
+                        config=config,
+                        stream_mode="values",
+                    ):
+                        for i in range(last_message_id, len(chunk["messages"])):
+                            message = chunk["messages"][i]
+                            run_id = None
+                            if (cb.traced_runs and cb.traced_runs[-1].name == cfg['LANGSMITH']['model_run_name']):
+                                run_id = cb.traced_runs[-1].id
+                            st.session_state["message_to_run_ids"][message.id] = run_id
+                            write_message(message)
+                        last_message_id = len(chunk["messages"])
 
     if not st.session_state["chat_prompted"]:
         rewrite_chat_history()

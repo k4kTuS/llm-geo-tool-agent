@@ -3,6 +3,7 @@ import re
 import streamlit as st
 
 from langchain_core.messages import BaseMessage
+from langsmith import Client
 from streamlit.components.v1 import html
 
 from agent import get_chat_history
@@ -36,13 +37,29 @@ def parse_drawing_coords(map_data, drawing_type):
         return None
     return last_drawing["geometry"]["coordinates"]
 
+def post_feedback(run_id):
+    # Every st widget with a defined key will be stored in the session state
+    if run_id not in st.session_state:
+        return
+
+    client = Client()
+    client.create_feedback(
+        run_id,
+        key="thumbs",
+        score=st.session_state[run_id],
+    )
+
 def write_message(message: BaseMessage):
     if message.type == "human":
         st.chat_message("human").write(message.content)
         return
 
     if message.type == "ai" and message.content != "":
-        st.chat_message("ai", avatar="🌿").markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
+        ai_msg = st.chat_message("ai", avatar="🌿")
+        ai_msg.markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
+        run_id = st.session_state["message_to_run_ids"].get(message.id)
+        if run_id is not None:
+            ai_msg.feedback("thumbs", key=run_id, on_change=post_feedback(run_id))
 
     has_tool_info = "tool_calls" in message.additional_kwargs or message.type == "tool"
     if has_tool_info and st.session_state["show_tool_calls"]:
