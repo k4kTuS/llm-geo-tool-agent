@@ -1,3 +1,4 @@
+import json
 import re
 
 import streamlit as st
@@ -59,6 +60,14 @@ def post_feedback(run_id):
         )
     st.session_state["feedback_ids"][run_id] = st.session_state[run_id]
 
+def print_tool_calls(tool_calls):
+    texts = []
+    for i, tc in enumerate(tool_calls, start=1):
+        texts.append(f"**Tool Call {i}:** {tc['name']}  \n"\
+            + f"Arguments: {json.dumps(tc['args'])}  \n"
+        )
+    return "\n".join(texts)
+
 def write_message(message: BaseMessage):
     if message.type == "human":
         st.chat_message("human").write(message.content)
@@ -75,9 +84,15 @@ def write_message(message: BaseMessage):
                 on_change=post_feedback(run_id),
             )
 
-    has_tool_info = "tool_calls" in message.additional_kwargs or message.type == "tool"
-    if has_tool_info and st.session_state["show_tool_calls"]:
-        st.chat_message("tool", avatar="🛠️").markdown(message.pretty_repr().replace("\n", "  \n"), unsafe_allow_html=True)
+    if st.session_state["show_tool_calls"]:
+        if "tool_calls" in message.additional_kwargs:
+            gen_tools_msg = st.chat_message("tool", avatar="🛠️")
+            with gen_tools_msg.expander("Generated tool calls:"):
+                st.markdown(print_tool_calls(message.tool_calls))
+        elif message.type == "tool":
+            tool_msg = st.chat_message("tool", avatar="🛠️")
+            with tool_msg.expander(message.name):
+                st.markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
 
 def rewrite_chat_history():
     chat_history = get_chat_history(st.session_state["user"])
