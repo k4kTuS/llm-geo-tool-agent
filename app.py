@@ -17,6 +17,8 @@ cfg.read('config.ini')
 
 if "message_to_run_ids" not in st.session_state:
     st.session_state["message_to_run_ids"] = {}
+if "feedback_ids" not in st.session_state:
+    st.session_state["feedback_ids"] = {}
 
 st.set_page_config(
     page_title="PoliRuralPlus Chat Assistant",

@@ -39,15 +39,24 @@ def parse_drawing_coords(map_data, drawing_type):
 
 def post_feedback(run_id):
     # Every st widget with a defined key will be stored in the session state
-    if run_id not in st.session_state:
+    if run_id not in st.session_state or st.session_state[run_id] is None:
         return
 
     client = Client()
-    client.create_feedback(
-        run_id,
-        key="thumbs",
-        score=st.session_state[run_id],
-    )
+    if run_id in st.session_state["feedback_ids"]:
+        if (st.session_state[run_id] == st.session_state["feedback_ids"][run_id]):
+            return
+        client.update_feedback(
+            run_id,
+            score=st.session_state[run_id]
+        )
+    else:
+        client.create_feedback(
+            run_id,
+            key="thumbs",
+            score=st.session_state[run_id],
+        )
+    st.session_state["feedback_ids"][run_id] = st.session_state[run_id]
 
 def write_message(message: BaseMessage):
     if message.type == "human":
@@ -59,7 +68,11 @@ def write_message(message: BaseMessage):
         ai_msg.markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
         run_id = st.session_state["message_to_run_ids"].get(message.id)
         if run_id is not None:
-            ai_msg.feedback("thumbs", key=run_id, on_change=post_feedback(run_id))
+            ai_msg.feedback(
+                "thumbs",
+                key=run_id,
+                on_change=post_feedback(run_id),
+            )
 
     has_tool_info = "tool_calls" in message.additional_kwargs or message.type == "tool"
     if has_tool_info and st.session_state["show_tool_calls"]:
