@@ -55,6 +55,7 @@ def post_feedback(run_id):
             run_id,
             key="thumbs",
             score=st.session_state[run_id],
+            feedback_id=run_id
         )
     st.session_state["feedback_ids"][run_id] = st.session_state[run_id]
 
