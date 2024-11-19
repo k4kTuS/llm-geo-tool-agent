@@ -95,7 +95,7 @@ def write_message(message: BaseMessage):
             with tool_msg.expander(message.name):
                 st.markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
 
-def rewrite_chat_history():
+def write_conversation():
     chat_history = get_chat_history(st.session_state["user"])
     for m in chat_history.messages:
         write_message(m)

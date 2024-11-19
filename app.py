@@ -45,8 +45,6 @@ def show_login_form():
 def show_chat_app():
     st.title("🌿 PoliRuralPlus Chat Assistant")
 
-    st.session_state["chat_prompted"] = False
-
     with st.sidebar:
         st.subheader("Chat management")
         
@@ -82,6 +80,7 @@ def show_chat_app():
         selected = st.pills(label="What do you want to talk about?", options=examples, disabled=st.session_state["inputs_disabled"])
         add_pill_to_chat_input(selected)
 
+    write_conversation()
     if prompt := st.chat_input(placeholder="Ask me anything...", disabled=st.session_state["inputs_disabled"], on_submit=disable_inputs):
         if st.session_state["selected_bbox"] is None:
             st.toast("Please draw a rectangle on the map to select the area of interest.", icon="🗺️")
@@ -102,10 +101,6 @@ def show_chat_app():
             }
 
             app = build_graph()
-
-            rewrite_chat_history()
-            st.session_state["chat_prompted"] = True
-
             with st.spinner("Give me a second, I am thinking..."):
                 with callbacks.collect_runs() as cb:
                     last_message_id = 0
@@ -128,8 +123,6 @@ def show_chat_app():
                         last_message_id = len(chunk["messages"])
         st.session_state["inputs_disabled"] = False
         st.rerun()
-    if not st.session_state["chat_prompted"]:
-        rewrite_chat_history()
 
 if "user" not in st.session_state:
     show_login_form()
