@@ -35,12 +35,18 @@ def disable_inputs():
 def show_login_form():
     st.title("Login")
     username_input = st.text_input("Enter your username")
+    password_input = st.text_input("Enter the early access password", type="password")
 
-    if st.button("Login") and username_input:
-        st.session_state["user"] = username_input
-        st.success(f"Welcome, {username_input}! Redirecting you to chat assistant...")
-        time.sleep(1)
-        st.rerun()
+    if st.button("Login"):
+        if not username_input:
+            st.warning("Please enter your username.")
+        elif password_input != st.secrets["EA_PASSWORD"]:
+            st.error("Incorrect password. Please try again.")
+        else:
+            st.session_state["user"] = username_input
+            st.success(f"Welcome, {username_input}! Redirecting you to chat assistant...")
+            time.sleep(1)
+            st.rerun()
 
 def show_chat_app():
     st.title("🌿 PoliRuralPlus Chat Assistant")
