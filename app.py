@@ -19,6 +19,8 @@ if "message_to_run_ids" not in st.session_state:
     st.session_state["message_to_run_ids"] = {}
 if "feedback_ids" not in st.session_state:
     st.session_state["feedback_ids"] = {}
+if "inputs_disabled" not in st.session_state:
+    st.session_state["inputs_disabled"] = False
 
 st.set_page_config(
     page_title="PoliRuralPlus Chat Assistant",
@@ -26,6 +28,9 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="auto",
 )
+
+def disable_inputs():
+    st.session_state["inputs_disabled"] = True
 
 def show_login_form():
     st.title("Login")
@@ -45,14 +50,14 @@ def show_chat_app():
     with st.sidebar:
         st.subheader("Chat management")
         
-        tools_on = st.toggle("Show tool calls details")
+        tools_on = st.toggle(label="Show tool calls details", disabled=st.session_state["inputs_disabled"])
 
         if tools_on:
             st.session_state["show_tool_calls"] = True
         else:
             st.session_state["show_tool_calls"] = False
 
-        if st.button("Clear chat history"):
+        if st.button(label="Clear chat history", disabled=st.session_state["inputs_disabled"]):
             clear_chat_history(st.session_state["user"])
             st.session_state["message_to_run_ids"] = {}
             st.toast("Chat history cleared.", icon="🧹")
@@ -74,13 +79,14 @@ def show_chat_app():
 
     with st.expander("Click to select some example questions", icon="🔍"):
         examples = [line.rstrip() for line in open('resources/example_questions.txt')]
-        selected = st.pills("What do you want to talk about?", examples)
+        selected = st.pills(label="What do you want to talk about?", options=examples, disabled=st.session_state["inputs_disabled"])
         add_pill_to_chat_input(selected)
 
-    if prompt := st.chat_input(placeholder="Ask me anything..."):
+    if prompt := st.chat_input(placeholder="Ask me anything...", disabled=st.session_state["inputs_disabled"], on_submit=disable_inputs):
         if st.session_state["selected_bbox"] is None:
             st.toast("Please draw a rectangle on the map to select the area of interest.", icon="🗺️")
             st.toast("You must have one area of interest selected at a time.", icon="🗺️")
+            time.sleep(2)
         else:
             coords = get_api_coords(st.session_state["selected_bbox"][0])
             hotel_site_marker = st.session_state["hotel_site_marker"]
@@ -122,7 +128,8 @@ def show_chat_app():
                             st.session_state["message_to_run_ids"][message.id] = run_id
                             write_message(message)
                         last_message_id = len(chunk["messages"])
-
+        st.session_state["inputs_disabled"] = False
+        st.rerun()
     if not st.session_state["chat_prompted"]:
         rewrite_chat_history()
 

@@ -82,6 +82,7 @@ def write_message(message: BaseMessage):
                 "thumbs",
                 key=run_id,
                 on_change=post_feedback(run_id),
+                disabled=st.session_state["inputs_disabled"]
             )
 
     if st.session_state["show_tool_calls"]:
