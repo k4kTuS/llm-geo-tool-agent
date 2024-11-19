@@ -58,6 +58,7 @@ def show_chat_app():
         if st.button(label="Clear chat history", disabled=st.session_state["inputs_disabled"]):
             clear_chat_history(st.session_state["user"])
             st.session_state["message_to_run_ids"] = {}
+            st.session_state["feedback_ids"] = {}
             st.toast("Chat history cleared.", icon="🧹")
 
         st.subheader("Area of interest")
