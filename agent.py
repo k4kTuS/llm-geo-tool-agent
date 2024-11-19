@@ -1,6 +1,7 @@
 import configparser
 
 from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.messages import SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, END, StateGraph
 from langgraph.graph.message import add_messages
@@ -54,18 +55,18 @@ def build_graph():
     llm_with_tools = llm.bind_tools(get_all_tools())
 
     def should_continue(state: AgentState, config: RunnableConfig):
-        messages = state["messages"]
-        last_message = messages[-1]
+        msgs = state["messages"]
+        last_message = msgs[-1]
         if last_message.tool_calls:
             return "tools"
 
-        get_chat_history(config["configurable"]["session_id"]).add_messages(messages)
+        get_chat_history(config["configurable"]["session_id"]).add_messages(msgs)
         return END
 
     def call_model(state: AgentState, config: RunnableConfig):
         chat_history = get_chat_history(config["configurable"]["session_id"])
-        messages = list(chat_history.messages) + state["messages"]
-        response = llm_with_tools.with_config({"run_name": cfg['LANGSMITH']['model_run_name']}).invoke(messages)
+        msgs = [SystemMessage(content=SYSTEM_MESSAGE_TEMPLATE)] + list(chat_history.messages) + state["messages"]
+        response = llm_with_tools.with_config({"run_name": cfg['LANGSMITH']['model_run_name']}).invoke(msgs)
         return {"messages": [response]}
 
     def filter_messages(messages: list):

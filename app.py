@@ -3,7 +3,7 @@ import time
 
 from dotenv import load_dotenv
 from langchain import callbacks
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage
 import streamlit as st
 from streamlit_folium import st_folium
 
@@ -111,9 +111,7 @@ def show_chat_app():
                     last_message_id = 0
                     for chunk in app.stream(
                         {
-                            "messages": [
-                                SystemMessage(content=SYSTEM_MESSAGE_TEMPLATE),
-                                HumanMessage(content=prompt)],
+                            "messages": [HumanMessage(content=prompt)],
                             "coords": coords,
                             "hotel_site_marker": hotel_site_marker,
                         },
