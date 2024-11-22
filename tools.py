@@ -91,7 +91,9 @@ def get_elevation_data(
     bbox_area = get_area(coords)
     zones_ratios = {k: v / n_pixels for k, v in zones_data.items()}
     
-    return f"Average elevation: {elevations.mean():.2f} meters\n\n"\
+    return f"Average elevation: {elevations.mean():.2f} meters\n"\
+        + f"Max elevation: {elevations.max()} meters\n"\
+        + f"Min elevation: {elevations.min()} meters\n\n"\
         + "Elevation zones:\n"\
         + "\n".join([f"{k}: {v * bbox_area:.2f} km squared ({v*100:.2f}%)" for k, v in zones_ratios.items() if v != 0])
 
