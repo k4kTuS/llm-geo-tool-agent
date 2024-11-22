@@ -80,3 +80,13 @@ def find_square_for_marker(square_list, marker_coords):
         if lat1 <= m_lat <= lat2 and lon1 <= m_lon <= lon2:
             return square
     return None
+
+def get_spoi_data(coords):
+    # bbox is in lat1, lon1, lat2, lon2 order, SPOI endpoint expects lon1, lat1, lon2, lat2
+    bbox = ','.join([str(v) for v in [coords[1], coords[0], coords[3], coords[2]]])
+    response = requests.get(
+        wfs_config["SPOI"]["wfs_root_url"],
+        params={**wfs_config["SPOI"]["data"], **{"bbox": bbox}},
+        stream=True
+    )
+    return response.json()

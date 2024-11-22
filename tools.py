@@ -189,6 +189,21 @@ def predict_temperature(
 
     return f"Predicted temperatures for the next {steps} days:\n" + "\n".join([f"{pred:.2f} °C" for pred in preds])
 
+@tool(parse_docstring=True)
+def get_smart_points_of_interest(
+    coords: Annotated[list[float], InjectedState("coords")]
+) -> str:
+    """Return processed data about points of interest in the selected area. The bounding box coordinates will be provided during runtime.
+    
+    Args:
+        coords: Map bounding box coordinates.
+    """
+    spoi_data = get_spoi_data(coords)
+    return f"Number of points of interest: {len(spoi_data['features'])}"\
+        + "\n\n" + "\n".join([f"{poi['properties']['cat'][str.rfind(poi['properties']['cat'], '#')+1:]} - {poi['properties']['label']}" for poi in spoi_data['features']])
+    
+
+
 def get_all_tools():
     return [
         get_open_land_use,
@@ -198,5 +213,6 @@ def get_all_tools():
         get_transport_data,
         get_eurostat_population_data,
         estimate_hotel_suitability,
-        predict_temperature
+        predict_temperature,
+        get_smart_points_of_interest
     ]
