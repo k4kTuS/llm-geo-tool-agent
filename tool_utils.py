@@ -1,11 +1,12 @@
 from io import BytesIO
 
+import geopandas as gpd
 import numpy as np
 import requests
 from PIL import Image
 from pyproj import Transformer
 from scipy.spatial import KDTree
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, box
 
 from config import *
 
@@ -71,6 +72,18 @@ def get_area(coords):
     polygon = Polygon(ring)
     # Polygon area in km2
     return polygon.area/1000000
+
+def get_area_gpd(coords):
+    """
+    Calculate the area of a bounding box in square kilometers using GeoPandas, estimating the correct UTM CRS.
+
+    Args:
+        coords: Bounding box coordinates in lat1, lon1, lat2, lon2 order.
+    """
+    gdf = gpd.GeoDataFrame({"geometry": [box(coords[1], coords[0], coords[3], coords[2])]}, crs="EPSG:4326")
+    utm_crs = gdf.estimate_utm_crs()
+    gdf_utm = gdf.to_crs(utm_crs)
+    return gdf_utm.iloc[0].geometry.area/1000000
 
 def find_square_for_marker(square_list, marker_coords):
     m_lon, m_lat = marker_coords

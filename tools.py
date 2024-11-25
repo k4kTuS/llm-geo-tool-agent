@@ -31,7 +31,7 @@ def get_open_land_use(
     land_uses = [rgb_LU_mapping[rgb] for rgb,_ in rgb_counts]
     land_ratios = [cnt/n_pixels for _,cnt in rgb_counts]
 
-    bbox_area = get_area(coords)
+    bbox_area = get_area_gpd(coords)
     unit = "km squared"
     if bbox_area < 1:
         bbox_area *= 1000_000
@@ -88,7 +88,7 @@ def get_elevation_data(
     zones_data = count_elevation_zones(elevations)
     
     n_pixels = len(image.getdata())
-    bbox_area = get_area(coords)
+    bbox_area = get_area_gpd(coords)
     zones_ratios = {k: v / n_pixels for k, v in zones_data.items()}
     
     return f"Average elevation: {elevations.mean():.2f} meters\n"\
