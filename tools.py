@@ -42,11 +42,11 @@ def get_open_land_use(
         + "\n".join([f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)" for lu, ratio in zip(land_uses, land_ratios) if ratio > 0.05])
 
 @tool(parse_docstring=True)
-def get_monthly_average_temperature(
+def get_monthly_average_temperature_last_5yrs(
     month: str,
     coords: Annotated[list[float], InjectedState("coords")]
 ) -> str:
-    """Return processed monthly average temperature data. The bounding box coordinates will be provided during runtime.
+    """Return monthly average temperature data calculated from the last five years. The bounding box coordinates will be provided during runtime.
     
     Args:
         month: Month in the format of MM
@@ -58,11 +58,11 @@ def get_monthly_average_temperature(
     return f"Average temperature in {month_name}: {np.array(image).mean():.2f} °C"
 
 @tool(parse_docstring=True)
-def get_monthly_average_temperature_2030_prediction(
+def get_monthly_average_temperature_prediction_2050s(
     month: str,
     coords: Annotated[list[float], InjectedState("coords")]
 ) -> str:
-    """Get temperature prediction for long future for a selected area. Valid only for predictions for year 2030.
+    """Return long term forecast of monthly average temperature viable for 2050s.
     The bounding box coordinates will be provided during runtime.
     
     Args:
@@ -209,8 +209,8 @@ def get_smart_points_of_interest(
 def get_all_tools():
     return [
         get_open_land_use,
-        get_monthly_average_temperature,
-        get_monthly_average_temperature_2030_prediction,
+        get_monthly_average_temperature_last_5yrs,
+        get_monthly_average_temperature_prediction_2050s,
         get_elevation_data,
         get_transport_data,
         get_eurostat_population_data,
