@@ -1,12 +1,15 @@
 from io import BytesIO
 
 import geopandas as gpd
+import json
 import numpy as np
 import requests
+import pandas as pd
 from PIL import Image
 from pyproj import Transformer
 from scipy.spatial import KDTree
 from shapely.geometry import Polygon, box
+import streamlit as st
 
 from config import *
 
@@ -103,3 +106,17 @@ def get_spoi_data(coords):
         stream=True
     )
     return response.json()
+
+@st.cache_data
+def get_region_tourism_data(coords):
+    gdf = gpd.GeoDataFrame.from_file('data/visitors.geojson')
+    df = pd.read_csv('data/ciselnik_obci.csv')
+    bbox_lon_lat = [coords[1], coords[0], coords[3], coords[2]]
+    # Use only one region at first
+    regions = gdf[gdf.intersects(box(*bbox_lon_lat))]
+    regions.loc[:, 'fid'] = regions.loc[:, 'fid'].astype(int)
+    first_region = regions.iloc[0]
+    props = json.loads(first_region.properties)
+    name = df[df.chodnota == first_region.fid].text.values[0]
+
+    return props, name
