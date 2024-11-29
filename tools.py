@@ -232,7 +232,7 @@ def get_tourism_potential(
     if (years == 0):
         return tourism_data_string
 
-    series = TimeSeries.from_sedataries(pds)
+    series = TimeSeries.from_series(pds)
 
     scaler = Scaler()
     series = scaler.fit_transform(series)
