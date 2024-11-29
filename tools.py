@@ -72,7 +72,7 @@ def get_monthly_average_temperature_prediction_2050s(
     image = get_map(coords, "climate_ipcc_rcp45_temperature_2050s_month_avg", {"TIME": f"2030{month}01"})
     
     month_name = datetime.datetime.strptime(month, "%m").strftime("%B")
-    return f"Predicted average temperature in {month_name} in year 2030: {np.array(image).mean():.2f} °C"
+    return f"Predicted average temperature in {month_name} in 2050s: {np.array(image).mean():.2f} °C"
 
 @tool(parse_docstring=True)
 def get_elevation_data(
