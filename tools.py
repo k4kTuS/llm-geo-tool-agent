@@ -221,6 +221,10 @@ def get_tourism_potential(
        coords: Map bounding box coordinates. 
     """
     region_data, region_name = get_region_tourism_data(coords)
+    
+    if region_data is None:
+        return f"There is no existing tourism data for region {region_name}"
+
     data = dict(sorted(region_data.items()))
 
     pds = pd.DataFrame.from_dict(data, orient="index").loc[:, 'all_guests'].astype(float).astype(int)
@@ -253,7 +257,7 @@ def get_tourism_potential(
         f"{last_year + i + 1}: {int(v)}" 
         for i, v in enumerate(forecast.values())
     ]
-    return tourism_data_string + "\n\n" +\
+    return tourism_data_string + "\n\n"\
         + f"Prediction for next {years} years:\n"\
         + "\n".join(forecast_strings)
 

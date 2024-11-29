@@ -119,4 +119,8 @@ def get_region_tourism_data(coords):
     props = json.loads(first_region.properties)
     name = df[df.chodnota == first_region.fid].text.values[0]
 
+    # Hotfix for missing data:
+    if list(props.values())[0]['all_guests'] == '.':
+        return None, name
+
     return props, name
