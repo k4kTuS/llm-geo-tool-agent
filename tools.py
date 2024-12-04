@@ -206,12 +206,12 @@ def get_tourism_potential(
        years: Number of years to predict tourism in the area for. If 0, only historical data is returned.
        coords: Map bounding box coordinates. 
     """
-    region_data, region_name = get_region_tourism_data(coords)
+    data, region_name = get_region_tourism_data(coords)
     
-    if region_data is None:
+    if data is None:
+        if region_name is None:
+            return "There is no existing tourism data for the selected region"
         return f"There is no existing tourism data for region {region_name}"
-
-    data = dict(sorted(region_data.items()))
 
     pds = pd.DataFrame.from_dict(data, orient="index").loc[:, 'all_guests'].astype(float).astype(int)
     pds.index = pds.index.astype(int)
@@ -219,8 +219,11 @@ def get_tourism_potential(
     tourism_data_string = f"Tourism data for region {region_name}:\n\n"\
         + "Number of all guests for recent years:\n"\
         + "\n".join([f"{k}: {v}" for k,v in pds.items()])
-    if (years == 0):
+    if (years == 0 ):
         return tourism_data_string
+    if (len(pds) < 5):
+        return tourism_data_string + "\n\n"\
+            + "There is not enough historical tourism data to make a reliable prediction for next years."
 
     series = TimeSeries.from_series(pds)
 

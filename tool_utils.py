@@ -54,7 +54,60 @@ def get_color_counts(image, n_colors=None):
     # Get the top n colors
     return sorted_pixel_counts[:n_colors]
 
+def find_square_for_marker(square_list, marker_coords):
+    m_lon, m_lat = marker_coords
+    for square in square_list:
+        lat1, lon1, lat2, lon2 = map(float, square.split('_'))
+
+        if lat1 <= m_lat <= lat2 and lon1 <= m_lon <= lon2:
+            return square
+    return None
+
+# SPOI
+def get_spoi_data(coords):
+    # bbox is in lat1, lon1, lat2, lon2 order, SPOI endpoint expects lon1, lat1, lon2, lat2
+    bbox = ','.join([str(v) for v in [coords[1], coords[0], coords[3], coords[2]]])
+    response = requests.get(
+        wfs_config["SPOI"]["wfs_root_url"],
+        params={**wfs_config["SPOI"]["data"], **{"bbox": bbox}},
+        stream=True
+    )
+    return response.json()
+
+# Tourism
+@st.cache_data
+def get_region_tourism_data(coords):
+    """
+    Currently works only with Czech Republic region data.
+    """
+    gdf = gpd.GeoDataFrame.from_file('data/visitors.geojson')
+    df = pd.read_csv('data/ciselnik_obci.csv', index_col='chodnota')
+    bbox_lon_lat = [coords[1], coords[0], coords[3], coords[2]]
+    regions = gdf[gdf.intersects(box(*bbox_lon_lat))]
+    # No regions found
+    if regions.empty:
+        return None, None
+    # Use only one region at first
+    regions.loc[:, 'fid'] = regions.loc[:, 'fid'].astype(int)
+    first_region = regions.iloc[0]
+    props = json.loads(first_region.properties)
+    name = df.loc[first_region.fid].text
+
+    data = dict(sorted((k,v) for k,v in props.items() if is_number(v['all_guests'])))
+    # No data for given region
+    if len(data) == 0:
+        return None, name
+
+    return data, name
+
 # Other helpers
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 def get_map(coords, endpoint, alt_params={}):
     bbox = ','.join([str(v) for v in coords])
     
@@ -87,40 +140,3 @@ def get_area_gpd(coords):
     utm_crs = gdf.estimate_utm_crs()
     gdf_utm = gdf.to_crs(utm_crs)
     return gdf_utm.iloc[0].geometry.area/1000000
-
-def find_square_for_marker(square_list, marker_coords):
-    m_lon, m_lat = marker_coords
-    for square in square_list:
-        lat1, lon1, lat2, lon2 = map(float, square.split('_'))
-
-        if lat1 <= m_lat <= lat2 and lon1 <= m_lon <= lon2:
-            return square
-    return None
-
-def get_spoi_data(coords):
-    # bbox is in lat1, lon1, lat2, lon2 order, SPOI endpoint expects lon1, lat1, lon2, lat2
-    bbox = ','.join([str(v) for v in [coords[1], coords[0], coords[3], coords[2]]])
-    response = requests.get(
-        wfs_config["SPOI"]["wfs_root_url"],
-        params={**wfs_config["SPOI"]["data"], **{"bbox": bbox}},
-        stream=True
-    )
-    return response.json()
-
-@st.cache_data
-def get_region_tourism_data(coords):
-    gdf = gpd.GeoDataFrame.from_file('data/visitors.geojson')
-    df = pd.read_csv('data/ciselnik_obci.csv')
-    bbox_lon_lat = [coords[1], coords[0], coords[3], coords[2]]
-    # Use only one region at first
-    regions = gdf[gdf.intersects(box(*bbox_lon_lat))]
-    regions.loc[:, 'fid'] = regions.loc[:, 'fid'].astype(int)
-    first_region = regions.iloc[0]
-    props = json.loads(first_region.properties)
-    name = df[df.chodnota == first_region.fid].text.values[0]
-
-    # Hotfix for missing data:
-    if list(props.values())[0]['all_guests'] == '.':
-        return None, name
-
-    return props, name
