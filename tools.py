@@ -102,20 +102,6 @@ def get_elevation_data(
         + "\n".join([f"{k}: {v * bbox_area:.2f} km squared ({v*100:.2f}%)" for k, v in zones_ratios.items() if v != 0])
 
 @tool(parse_docstring=True)
-def get_transport_data(
-    coords: Annotated[list[float], InjectedState("coords")]
-) -> str:
-    """Return processed roads and transportation data. The bounding box coordinates will be provided during runtime.
-    
-    Args:
-        coords: Map bounding box coordinates.
-    """
-    image = get_map(coords, "transport")
-    roads_pixel_count = np.sum((np.array(image)[:,:,-1] > 0))
-    
-    return f"Area covered by roads: {roads_pixel_count / len(image.getdata()) * 100:.2f}%"
-
-@tool(parse_docstring=True)
 def get_eurostat_population_data(
     coords: Annotated[list[float], InjectedState("coords")]
 ) -> str:
@@ -267,7 +253,6 @@ def get_all_tools():
         get_monthly_average_temperature_last_5yrs,
         get_monthly_average_temperature_prediction_2050s,
         get_elevation_data,
-        get_transport_data,
         get_eurostat_population_data,
         estimate_hotel_suitability,
         predict_temperature,
