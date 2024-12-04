@@ -2,12 +2,7 @@ import datetime
 
 import numpy as np
 
-map_config={
-    'transport':
-        {'wms_root_url':'https://gis.lesprojekt.cz/cgi-bin/mapserv', 
-        'data':{'map':'/home/dima/maps/open_transport_map/open_transport_map.map', 'service':'WMS', 'version':'1.3.0', 'request':'GetMap', 'bbox':'49.3,12.7,49.4,12.8', 'crs':'EPSG:4326', 'width':'1562', 'height':'680', 'layers':'road_classes_all', 'styles':'', 'format':'png' }, 
-        'alternatives':{}
-        }, 
+map_config={ 
     'climate_era5_temperature_last_5yrs_month_avg':
         {'wms_root_url':'https://olu.lesprojekt.cz/cgi-bin/mapserv', 
         'data':{'map':'/data/maps/thematic_maps.map', 'service':'WMS', 'version':'1.3.0', 'request':'GetMap', 'bbox':'49.3,12.7,49.4,12.8', 'crs':'EPSG:4326', 'width':'1562', 'height':'680', 'layers':'t2m_2020', 'TIME':'20200101','styles':'', 'format':'gtiff' }, 
