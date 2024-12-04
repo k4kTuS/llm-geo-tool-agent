@@ -219,7 +219,7 @@ def get_tourism_potential(
     tourism_data_string = f"Tourism data for region {region_name}:\n\n"\
         + "Number of all guests for recent years:\n"\
         + "\n".join([f"{k}: {v}" for k,v in pds.items()])
-    if (years == 0 ):
+    if (years == 0):
         return tourism_data_string
     if (len(pds) < 5):
         return tourism_data_string + "\n\n"\
