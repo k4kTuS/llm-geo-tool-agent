@@ -1,7 +1,6 @@
 catboost
 configparser
 datetime
-darts
 folium
 geopandas
 langchain

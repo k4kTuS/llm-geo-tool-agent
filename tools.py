@@ -6,10 +6,6 @@ import requests
 from statsmodels.tsa.arima.model import ARIMA
 from typing_extensions import Annotated, Optional
 
-from darts import TimeSeries
-from darts.models import NHiTSModel
-from darts.dataprocessing.transformers import Scaler
-
 from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 
@@ -195,15 +191,12 @@ def get_smart_points_of_interest(
         + "\n\n" + "\n".join([f"{poi['properties']['cat'][str.rfind(poi['properties']['cat'], '#')+1:]} - {poi['properties']['label']}" for poi in spoi_data['features']])
     
 @tool(parse_docstring=True)
-def get_tourism_potential(
-    years: int,
+def get_tourism_data(
     coords: Annotated[list[float], InjectedState("coords")]
 ) -> str:
-    """Return historical tourism data together with tourism prediction for a number of years specified in the parameters.
-    The bounding box coordinates will be provided during runtime. Prediction can be done for 10 years at most.
+    """Return historical tourism data for regions based on given coordinates. The bounding box coordinates will be provided during runtime.
 
     Args:
-       years: Number of years to predict tourism in the area for. If 0, only historical data is returned.
        coords: Map bounding box coordinates. 
     """
     data, region_name = get_region_tourism_data(coords)
@@ -219,36 +212,7 @@ def get_tourism_potential(
     tourism_data_string = f"Tourism data for region {region_name}:\n\n"\
         + "Number of all guests for recent years:\n"\
         + "\n".join([f"{k}: {v}" for k,v in pds.items()])
-    if (years == 0):
-        return tourism_data_string
-    if (len(pds) < 5):
-        return tourism_data_string + "\n\n"\
-            + "There is not enough historical tourism data to make a reliable prediction for next years."
-
-    series = TimeSeries.from_series(pds)
-
-    scaler = Scaler()
-    series = scaler.fit_transform(series)
-
-    model = NHiTSModel(
-        input_chunk_length=4, 
-        output_chunk_length=1, 
-        n_epochs=20, 
-        batch_size=16, 
-    )
-    model.fit(series)
-
-    forecast = model.predict(n=years)
-    forecast = scaler.inverse_transform(forecast)
-
-    last_year = int(list(data.keys())[-1])
-    forecast_strings = [
-        f"{last_year + i + 1}: {int(v)}" 
-        for i, v in enumerate(forecast.values())
-    ]
-    return tourism_data_string + "\n\n"\
-        + f"Prediction for next {years} years:\n"\
-        + "\n".join(forecast_strings)
+    return tourism_data_string
 
 def get_all_tools():
     return [
@@ -260,5 +224,5 @@ def get_all_tools():
         estimate_hotel_suitability,
         predict_temperature,
         get_smart_points_of_interest,
-        get_tourism_potential
+        get_tourism_data
     ]
