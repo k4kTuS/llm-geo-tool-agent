@@ -10,15 +10,15 @@ from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 
 import hotels_model
-from config import rgb_LU_mapping
+from config import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping
 from tool_utils import *
 
 # Tools
 @tool(parse_docstring=True)
-def get_open_land_use(
+def get_land_use(
     coords: Annotated[list[float], InjectedState("coords")]
 ) -> str:
-    """Return processed open land use data. The bounding box coordinates will be provided during runtime.
+    """Return processed land use data. The bounding box coordinates will be provided during runtime.
     
     Args:
         coords: Map bounding box coordinates.
@@ -26,7 +26,7 @@ def get_open_land_use(
     image = get_map(coords, "OLU_EU")
     
     n_pixels = len(image.getdata())
-    rgb_counts = get_color_counts(image)
+    rgb_counts = get_color_counts(image, LU_rgb_mapping)
     
     land_uses = [rgb_LU_mapping[rgb] for rgb,_ in rgb_counts]
     land_ratios = [cnt/n_pixels for _,cnt in rgb_counts]
@@ -39,6 +39,33 @@ def get_open_land_use(
     
     return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
         + "Land use information for biggest zones:\n"\
+        + "\n".join([f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)" for lu, ratio in zip(land_uses, land_ratios) if ratio > 0.05])
+
+@tool(parse_docstring=True)
+def get_land_cover(
+    coords: Annotated[list[float], InjectedState("coords")]
+) -> str:
+    """Return processed land cover data. The bounding box coordinates will be provided during runtime.
+    
+    Args:
+        coords: Map bounding box coordinates.
+    """
+    image = get_map(coords, "OLU_EU", {"layers": "olu_obj_lc"})
+    
+    n_pixels = len(image.getdata())
+    rgb_counts = get_color_counts(image, LC_rgb_mapping)
+    
+    land_uses = [rgb_LC_mapping[rgb] for rgb,_ in rgb_counts]
+    land_ratios = [cnt/n_pixels for _,cnt in rgb_counts]
+
+    bbox_area = get_area_gpd(coords)
+    unit = "km squared"
+    if bbox_area < 1:
+        bbox_area *= 1000_000
+        unit = "m squared"
+    
+    return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
+        + "Land cover information for biggest zones:\n"\
         + "\n".join([f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)" for lu, ratio in zip(land_uses, land_ratios) if ratio > 0.05])
 
 @tool(parse_docstring=True)
@@ -216,7 +243,8 @@ def get_tourism_data(
 
 def get_all_tools():
     return [
-        get_open_land_use,
+        get_land_use,
+        get_land_cover,
         get_monthly_average_temperature_last_5yrs,
         get_monthly_average_temperature_prediction_2050s,
         get_elevation_data,

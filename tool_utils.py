@@ -25,7 +25,7 @@ def count_elevation_zones(elevation_array):
     return zone_counts
 
 # OLU
-def get_color_counts(image, n_colors=None):
+def get_color_counts(image, rgb_mapping, n_colors=None):
     pixels = np.array(image)
     pixels = pixels.reshape(-1, 3)
 
@@ -37,9 +37,9 @@ def get_color_counts(image, n_colors=None):
     # Combine pixels and their counts
     pixel_counts = zip(map(tuple, unique_pixels), counts)
     # Prepare KDTree for color mapping
-    LU_colors = list(LU_rgb_mapping.values())
-    rgb_counts = {tuple(rgb): 0 for rgb in LU_colors}
-    kdtree = KDTree(LU_colors)
+    mapping_colors = list(rgb_mapping.values())
+    rgb_counts = {tuple(rgb): 0 for rgb in mapping_colors}
+    kdtree = KDTree(mapping_colors)
     # Get color counts for LU colors
     for rgb, cnt in pixel_counts:
         if rgb in rgb_counts:
@@ -47,7 +47,7 @@ def get_color_counts(image, n_colors=None):
         else:
             # Map missing colors using KDTree and add the count
             _, index = kdtree.query(rgb)
-            closest_color = tuple(LU_colors[index])
+            closest_color = tuple(mapping_colors[index])
             rgb_counts[closest_color] += cnt
     # Sort by counts
     sorted_pixel_counts = sorted([(k,v) for k,v in rgb_counts.items() if v != 0], reverse=True, key=lambda x: x[1])
