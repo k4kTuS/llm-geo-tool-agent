@@ -2,4 +2,4 @@
 :busts_in_silhouette: What's the population of this area, and how much land is used for residential zones?
 :sunny: How are the temperatures here during summer?
 :ice_cube: Will it be cold in the next 5 days?
-:motorway: What’s the road coverage and elevation distribution in this area?
+:motorway: What’s the elevation distribution in this area?
