@@ -47,7 +47,6 @@ wfs_config={
         }
 }
 
-# Used with DEM
 elevation_ranges = [
     (0, 50, "Coastal Plain"),
     (50, 100, "Floodplain"),
@@ -73,7 +72,6 @@ elevation_ranges = [
     (6000, np.inf, "Upper Glacial Zone")
 ]
 
-# Used with OLU
 LU_rgb_mapping = {
     'Primary Production': (180,230,110),
     'Agriculture': (230,230,110),
@@ -106,29 +104,9 @@ LU_rgb_mapping = {
 }
 rgb_LU_mapping = {v: k for k, v in LU_rgb_mapping.items()}
 
-# Used with LC
 LC_rgb_mapping = {
-    'Artificial surfaces': (230, 0, 77),
-    'Agricultural areas': (255, 255, 168),
-    'Forest and semi natural areas': (128, 255, 0),
-    'Wetlands': (166, 166, 255),
     'Water bodies': (128, 242, 230),
-    'NODATA': (200, 200, 200),
-    'Urban fabric': (230, 0, 77),
-    'Industrial, commercial and transport units': (204, 77, 242),
-    'Mine, dump and construction sites': (166, 0, 204),
-    'Artificial, non-agricultural vegetated areas': (255, 166, 255),
-    'Arable land': (255, 255, 168),
-    'Permanent crops': (230, 128, 0),
     'Pastures': (230, 230, 77),
-    'Heterogeneous agricultural areas': (255, 230, 166),
-    'Forests': (128, 255, 0),
-    'Scrub and/or herbaceous vegetation associations': (204, 242, 77),
-    'Open spaces with little or no vegetation': (230, 230, 230),
-    'Inland wetlands': (166, 166, 255),
-    'Maritime wetlands': (204, 204, 255),
-    'Inland waters': (0, 204, 242),
-    'Marine waters': (0, 255, 166),
     'Continuous urban fabric': (230, 0, 77),
     'Discontinuous urban fabric': (255, 0, 0),
     'Industrial or commercial units': (204, 77, 242),
