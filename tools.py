@@ -37,9 +37,19 @@ def get_land_use(
         bbox_area *= 1000_000
         unit = "m squared"
     
+    zones_data = []
+    small_zones_data = []
+    for lu, ratio in zip(land_uses, land_ratios):
+        if ratio < 0.01:
+            small_zones_data.append(f"{lu} - Area: {ratio*bbox_area:.4f} {unit} ({ratio*100:.4f}%)")
+        else:
+            zones_data.append(f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)")
+
     return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
-        + "Land use information for biggest zones:\n"\
-        + "\n".join([f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)" for lu, ratio in zip(land_uses, land_ratios) if ratio > 0.05])
+        + "Land use information for specific zones:\n"\
+        + "\n".join(zones_data)\
+        + "\n\n" + "Land use information for small zones:\n"\
+        + "\n".join(small_zones_data)
 
 @tool(parse_docstring=True)
 def get_land_cover(
@@ -64,9 +74,19 @@ def get_land_cover(
         bbox_area *= 1000_000
         unit = "m squared"
     
+    zones_data = []
+    small_zones_data = []
+    for lu, ratio in zip(land_uses, land_ratios):
+        if ratio < 0.01:
+            small_zones_data.append(f"{lu} - Area: {ratio*bbox_area:.4f} {unit} ({ratio*100:.4f}%)")
+        else:
+            zones_data.append(f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)")
+
     return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
-        + "Land cover information for biggest zones:\n"\
-        + "\n".join([f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)" for lu, ratio in zip(land_uses, land_ratios) if ratio > 0.05])
+        + "Land cover information for specific zones:\n"\
+        + "\n".join(zones_data)\
+        + "\n\n" + "Land cover information for small zones:\n"\
+        + "\n".join(small_zones_data)
 
 @tool(parse_docstring=True)
 def get_monthly_average_temperature_last_5yrs(
