@@ -45,7 +45,7 @@ def get_land_use(
             zones_data.append(f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)")
 
     return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
-        + "Land use information for specific zones:\n"\
+        + "Land use information:\n"\
         + "\n".join(zones_data)\
         + "\n\n" + "Land use information for small zones:\n"\
         + "\n".join(small_zones_data)
@@ -82,7 +82,7 @@ def get_land_cover(
             zones_data.append(f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)")
 
     return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
-        + "Land cover information for specific zones:\n"\
+        + "Land cover information:\n"\
         + "\n".join(zones_data)\
         + "\n\n" + "Land cover information for small zones:\n"\
         + "\n".join(small_zones_data)
