@@ -3,7 +3,6 @@ import datetime
 import numpy as np
 import pandas as pd
 import requests
-from statsmodels.tsa.arima.model import ARIMA
 from typing_extensions import Annotated, Optional
 
 from langchain_core.tools import tool
@@ -184,45 +183,50 @@ def estimate_hotel_suitability(
 
 @tool(parse_docstring=True)
 def predict_temperature(
-    steps: int,
+    forecast_days: int,
     coords: Annotated[list[float], InjectedState("coords")]
 ) -> str:
-    """Predict the temperature of a selected area starting from today's date. Can handle even longer periods of time.
-    The bounding box coordinates will be provided during runtime.
+    """Predict daily minimum, maximum, and mean temperatures for a selected area starting from today's date.
+    Provide forecasts for up to 16 days. The bounding box coordinates will be provided during runtime.
     
     Args:
-        steps: How long ahead should the prediction be, defined in days. 0 means getting temperature for today.
+        forecast_days: How many days to predict. Use 0 for current temperature. The maximum is 16 days.
         coords: Map bounding box coordinates used to calculate the center of the area used for prediction.
     """
     api_url = "https://api.open-meteo.com/v1/forecast"
 
     lat, lon = [coords[0] + (coords[2] - coords[0]) / 2, coords[1] + (coords[3] - coords[1]) / 2]
 
+    forecast_days = 16 if forecast_days > 16 else forecast_days
     params = {
         "latitude": lat,
         "longitude": lon,
         "current": "temperature_2m",
         "hourly": "temperature_2m",
-        "past_days": 92,
-        "forecast_days": 0,
+        "forecast_days": forecast_days,
         "timezone": "UTC",
     }
 
     response = requests.get(api_url, params=params)
 
-    if steps == 0:
-        return f"Current temperature: {response.json()['current']['temperature_2m']:.2f} °C"
+    if forecast_days == 0:
+        current_data = response.json()['current']
+        formatted_time = datetime.datetime.strptime(current_data['time'], '%Y-%m-%dT%H:%M').strftime('%Y-%m-%d')
+        return f"Current temperature ({formatted_time}): {current_data['temperature_2m']:.2f} °C"
 
     df = pd.DataFrame(response.json()["hourly"])
     df['time'] = pd.to_datetime(df['time'])
     df.set_index('time', inplace=True)
-    df_daily = df.resample('D').mean()['temperature_2m']
+    df_daily = df.resample('D').agg({
+        'temperature_2m': ['min', 'max', 'mean']
+    })
+    df_daily.columns = ['daily_min', 'daily_max', 'daily_mean']
 
-    model = ARIMA(df_daily, order=(1,0,0), trend='n')
-    model_fit = model.fit()
-    preds = model_fit.forecast(steps=steps)
-
-    return f"Predicted temperatures for the next {steps} days:\n" + "\n".join([f"{pred:.2f} °C" for pred in preds])
+    return f"Temperature predictions for the next {forecast_days} days, including today:\n"\
+        + '\n'.join(
+            f"{dtime.strftime('%Y-%m-%d')}: min: {row['daily_min']:.2f} °C, max: {row['daily_max']:.2f} °C, mean: {row['daily_mean']:.2f} °C"
+            for dtime, row in df_daily.iterrows()
+        )
 
 @tool(parse_docstring=True)
 def get_smart_points_of_interest(

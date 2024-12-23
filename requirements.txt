@@ -18,7 +18,6 @@ requests
 scikit-learn
 scipy
 shapely
-statsmodels
 streamlit
 streamlit_folium
 typing-extensions
