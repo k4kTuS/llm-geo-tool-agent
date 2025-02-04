@@ -23,8 +23,8 @@ class DrawMap:
             },
             # Custom JS that ensures only one rectangle is present at a time on the map
             on={
-                "add": JsCode(open("assets/js/handleAddDrawing.js", "r").read()),
-                "remove": JsCode(open("assets/js/handleRemoveDrawing.js", "r").read()),
+                "add": JsCode(open("../assets/js/handleAddDrawing.js", "r").read()),
+                "remove": JsCode(open("../assets/js/handleRemoveDrawing.js", "r").read()),
             }
         )
         draw.add_to(self.map_)
