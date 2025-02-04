@@ -9,7 +9,7 @@ from streamlit_folium import st_folium
 
 from agents.lg_tool_agent import build_graph, clear_chat_history, SYSTEM_MESSAGE_TEMPLATE
 from drawmap import DrawMap
-from utils import *
+from utils.streamlit_utils import *
 
 load_dotenv()
 cfg = configparser.ConfigParser()

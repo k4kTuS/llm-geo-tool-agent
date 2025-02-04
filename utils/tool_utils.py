@@ -11,7 +11,7 @@ from scipy.spatial import KDTree
 from shapely.geometry import Polygon, box
 import streamlit as st
 
-from config import *
+from utils.map_service_utils import *
 
 # DEM
 def count_elevation_zones(elevation_array):

@@ -7,7 +7,7 @@ from langchain_core.messages import BaseMessage
 from langsmith import Client
 from streamlit.components.v1 import html
 
-from agent import get_chat_history
+from agents.lg_tool_agent import get_chat_history
 
 def get_api_coords(coords):
     """
