@@ -69,13 +69,6 @@ def build_graph():
         response = llm_with_tools.with_config({"run_name": cfg['LANGSMITH']['model_run_name']}).invoke(msgs)
         return {"messages": [response]}
 
-    def filter_messages(messages: list):
-        filtered = []
-        for m in messages:
-            if not 'tool_calls' in m.additional_kwargs.keys():
-                filtered.append(m)
-        return filtered
-    
     workflow = StateGraph(AgentState)
 
     workflow.add_node("agent", call_model)
