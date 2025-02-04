@@ -60,19 +60,19 @@ def train_hotels_model(data, test_size=0.2, rd_seed=42, iters=5000, lr=0.01, dep
 
 @st.cache_resource
 def load_model():
-    if not os.path.exists("models/hotels_cbm"):
-        hotels_data = pd.read_csv("data/hotels.csv", index_col=0)
+    if not os.path.exists("../saved_models/hotels_cbm"):
+        hotels_data = pd.read_csv("../data/hotels.csv", index_col=0)
         model = train_hotels_model(hotels_data)
-        model.save_model("models/hotels_cbm")
+        model.save_model("../saved_models/hotels_cbm")
         return model
     else:
         model = CatBoostRegressor()
-        model.load_model("models/hotels_cbm")
+        model.load_model("../saved_models/hotels_cbm")
         return model
 
 @st.cache_data
 def load_features():
-    hotels_data = pd.read_csv("data/hotels.csv", index_col=0)
+    hotels_data = pd.read_csv("../data/hotels.csv", index_col=0)
     hotels_data_X = hotels_data.drop(columns=['lodging'])
     hotels_data_X = hotels_data_X.fillna(hotels_data_X.mean())
     return hotels_data_X

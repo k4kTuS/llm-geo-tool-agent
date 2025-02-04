@@ -8,7 +8,7 @@ from typing_extensions import Annotated, Optional
 from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 
-import hotels_model
+import models.hotels_model as hotels_model
 from config import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping
 from tool_utils import *
 
