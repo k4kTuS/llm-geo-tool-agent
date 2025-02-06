@@ -9,11 +9,13 @@ from streamlit_folium import st_folium
 
 from agents.lg_tool_agent import build_graph, clear_chat_history, SYSTEM_MESSAGE_TEMPLATE
 from visualizations.drawmap import DrawMap
+from paths import PROJECT_ROOT
 from utils.streamlit_utils import *
+from utils.geometry_utils import BoundingBox, PointMarker
 
 load_dotenv()
 cfg = configparser.ConfigParser()
-cfg.read('config.ini')
+cfg.read(f'{PROJECT_ROOT}/config.ini')
 
 if "message_to_run_ids" not in st.session_state:
     st.session_state["message_to_run_ids"] = {}
@@ -79,8 +81,8 @@ def show_chat_app():
             returned_objects=["all_drawings"],
         )
         
-        st.session_state["selected_bbox"] = parse_drawing_coords(map_data, "Polygon")
-        st.session_state["hotel_site_marker"] = parse_drawing_coords(map_data, "Point")
+        st.session_state["selected_area_wkt"] = parse_drawing_geometry(map_data, "Polygon")
+        st.session_state["hotel_site_wkt"] = parse_drawing_geometry(map_data, "Point")
 
     with st.expander("Click to select some example questions", icon="🔍"):
         examples = [line.rstrip() for line in open('resources/example_questions.txt')]
@@ -89,21 +91,21 @@ def show_chat_app():
 
     write_conversation()
     if prompt := st.chat_input(placeholder="Ask me anything...", disabled=st.session_state["inputs_disabled"], on_submit=disable_inputs):
-        if st.session_state["selected_bbox"] is None:
+        if st.session_state["selected_area_wkt"] is None:
             st.toast("Please draw a rectangle on the map to select the area of interest.", icon="🗺️")
             st.toast("You must have one area of interest selected at a time.", icon="🗺️")
             time.sleep(2)
         else:
-            coords = get_api_coords(st.session_state["selected_bbox"][0])
-            hotel_site_marker = st.session_state["hotel_site_marker"]
+            bbox = BoundingBox(wkt=st.session_state["selected_area_wkt"])
+            hotel_site_marker = PointMarker(wkt=st.session_state["hotel_site_wkt"]) if st.session_state["hotel_site_wkt"] else None
             config = {
                 "configurable": {
                     "session_id": st.session_state["user"],
                 },
                 "metadata": {
-                    "bounding-box": coords,
+                    "bounding_box_wkt": bbox.wkt,
                     "user": st.session_state["user"],
-                    "hotel_site_marker": hotel_site_marker 
+                    "hotel_site_marker_wkt": hotel_site_marker.wkt if hotel_site_marker else None,
                 },
             }
 
@@ -114,7 +116,7 @@ def show_chat_app():
                     for chunk in app.stream(
                         {
                             "messages": [HumanMessage(content=prompt)],
-                            "coords": coords,
+                            "bounding_box": bbox,
                             "hotel_site_marker": hotel_site_marker,
                         },
                         config=config,
