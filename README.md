@@ -57,13 +57,10 @@ Ensure you have the following installed:
 <hr>
 
 ## TODOs
-
-- ~~Change config to streamlit secrets~~
 - Move elements into containers and fragments to control what parts of code rerun
-- ~~Style the tool response chat messages~~
-- ~~Add logic for a message that contains both content and tool calls, combined with the hide/display tool calls setting~~
 - Add tab with visualizations of loaded resources
-- ~~Add chat messages persistence (DynamoDB / Google sheets / Langsmith logging)~~
-- ~~Add interactive chat input examples~~
 - Create a perimeter around selected area and build a graph of places to give further context
 - Refine System prompt
+- Refactor tools: SPOI, tourism, temperature
+- Add tool selector logic
+- Use SLD to get mapping for wms endpoints
