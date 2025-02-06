@@ -1,5 +1,6 @@
 from pydantic import BaseModel, field_validator
 
+import geopandas as gpd
 from shapely.geometry import Polygon, Point
 from shapely.errors import WKTReadingError
 from shapely.wkt import loads
@@ -26,6 +27,14 @@ class BoundingBox(BaseModel):
     @property
     def center(self) -> Point:
         return self.geom.centroid
+
+    @property
+    def area(self) -> float:
+        """Calculate the area of the bounding box in km^2 using most appropriate UTM CRS"""
+        gdf = gpd.GeoDataFrame({"geometry": [self.geom]}, crs="EPSG:4326")
+        utm_crs = gdf.estimate_utm_crs()
+        gdf = gdf.to_crs(utm_crs)
+        return gdf.iloc[0].geometry.area / 1000000
 
     def bounds_lonlat(self):
         """Returns bounds in (minx, miny, maxx, maxy) (default Shapely order)"""

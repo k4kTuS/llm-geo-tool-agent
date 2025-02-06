@@ -7,7 +7,7 @@ from typing import Optional, Type
 
 from tools.input_schemas.base_schemas import BaseGeomInput
 from utils.geometry_utils import BoundingBox
-from utils.tool_utils import get_map, get_color_counts, get_area_gpd, count_elevation_zones
+from utils.tool_utils import get_map, get_color_counts, count_elevation_zones
 from utils.map_service_utils import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping
 
 
@@ -25,7 +25,7 @@ class LandCoverTool(BaseTool):
         land_uses = [rgb_LC_mapping[rgb] for rgb,_ in rgb_counts]
         land_ratios = [cnt/n_pixels for _,cnt in rgb_counts]
 
-        bbox_area = get_area_gpd(bounding_box)
+        bbox_area = bounding_box.area
         unit = "km squared"
         if bbox_area < 1:
             bbox_area *= 1000_000
@@ -60,7 +60,7 @@ class LandUseTool(BaseTool):
         land_uses = [rgb_LU_mapping[rgb] for rgb,_ in rgb_counts]
         land_ratios = [cnt/n_pixels for _,cnt in rgb_counts]
 
-        bbox_area = get_area_gpd(bounding_box)
+        bbox_area = bounding_box.area
         unit = "km squared"
         if bbox_area < 1:
             bbox_area *= 1000_000
@@ -92,7 +92,7 @@ class ElevationTool(BaseTool):
         zones_data = count_elevation_zones(elevations)
         
         n_pixels = len(image.getdata())
-        bbox_area = get_area_gpd(bounding_box)
+        bbox_area = bounding_box.area
         zones_ratios = {k: v / n_pixels for k, v in zones_data.items()}
         
         return f"Average elevation: {elevations.mean():.2f} meters\n"\

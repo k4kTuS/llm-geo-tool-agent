@@ -115,15 +115,3 @@ def get_map(bounding_box: BoundingBox, endpoint, alt_params={}):
         stream=True
     )
     return Image.open(BytesIO(response.content))
-
-def get_area_gpd(bounding_box: BoundingBox):
-    """
-    Calculate the area of a bounding box in square kilometers using GeoPandas, estimating the correct UTM CRS.
-
-    Args:
-        coords: Bounding box coordinates in lat1, lon1, lat2, lon2 order.
-    """
-    gdf = gpd.GeoDataFrame({"geometry": [bounding_box.geom]}, crs="EPSG:4326")
-    utm_crs = gdf.estimate_utm_crs()
-    gdf_utm = gdf.to_crs(utm_crs)
-    return gdf_utm.iloc[0].geometry.area/1000000
