@@ -6,12 +6,12 @@ import numpy as np
 import requests
 import pandas as pd
 from PIL import Image
-from pyproj import Transformer
 from scipy.spatial import KDTree
-from shapely.geometry import Polygon, box
 import streamlit as st
 
-from config import *
+from paths import DATA_DIR
+from utils.geometry_utils import BoundingBox, PointMarker
+from utils.map_service_utils import *
 
 # DEM
 def count_elevation_zones(elevation_array):
@@ -55,8 +55,9 @@ def get_color_counts(image, rgb_mapping, n_colors=None):
     # Get the top n colors
     return sorted_pixel_counts[:n_colors]
 
-def find_square_for_marker(square_list, marker_coords):
-    m_lon, m_lat = marker_coords
+def find_square_for_marker(square_list, marker_point: PointMarker):
+    m_lon = marker_point.x
+    m_lat = marker_point.y
     for square in square_list:
         lat1, lon1, lat2, lon2 = map(float, square.split('_'))
 
@@ -65,26 +66,23 @@ def find_square_for_marker(square_list, marker_coords):
     return None
 
 # SPOI
-def get_spoi_data(coords):
-    # bbox is in lat1, lon1, lat2, lon2 order, SPOI endpoint expects lon1, lat1, lon2, lat2
-    bbox = ','.join([str(v) for v in [coords[1], coords[0], coords[3], coords[2]]])
+def get_spoi_data(bounding_box: BoundingBox):
+    # SPOI endpoint expects lon1, lat1, lon2, lat2
     response = requests.get(
         wfs_config["SPOI"]["wfs_root_url"],
-        params={**wfs_config["SPOI"]["data"], **{"bbox": bbox}},
+        params={**wfs_config["SPOI"]["data"], **{"bbox": bounding_box.to_string_lonlat()}},
         stream=True
     )
     return response.json()
 
 # Tourism
-@st.cache_data
-def get_region_tourism_data(coords):
+def get_region_tourism_data(bounding_box: BoundingBox):
     """
     Currently works only with Czech Republic region data.
     """
-    gdf = gpd.GeoDataFrame.from_file('data/visitors.geojson')
-    df = pd.read_csv('data/ciselnik_obci.csv', index_col='chodnota')
-    bbox_lon_lat = [coords[1], coords[0], coords[3], coords[2]]
-    regions = gdf[gdf.intersects(box(*bbox_lon_lat))]
+    gdf = gpd.GeoDataFrame.from_file(f'{DATA_DIR}/visitors.geojson')
+    df = pd.read_csv(f'{DATA_DIR}/ciselnik_obci.csv', index_col='chodnota')
+    regions = gdf[gdf.intersects(bounding_box.geom)]
     # No regions found
     if regions.empty:
         return None, None
@@ -109,35 +107,11 @@ def is_number(s):
     except ValueError:
         return False
 
-def get_map(coords, endpoint, alt_params={}):
-    bbox = ','.join([str(v) for v in coords])
-    
+def get_map(bounding_box: BoundingBox, endpoint, alt_params={}):
     api_setup = map_config[endpoint]
     response = requests.get(
         api_setup["wms_root_url"],
-        params={**api_setup["data"], **{"bbox": bbox, "height":"1500", "width":"1500"}, **alt_params},
+        params={**api_setup["data"], **{"bbox": bounding_box.to_string_latlon(), "height":"1500", "width":"1500"}, **alt_params},
         stream=True
     )
     return Image.open(BytesIO(response.content))
-
-def get_area(coords):
-    transformer = Transformer.from_crs("EPSG:4326", "EPSG:3035", always_xy=True)
-    # Transform coordinates - first array containts longitudes, second latitudes
-    lng, lat = transformer.transform([coords[1], coords[3]], [coords[0], coords[2]])
-    # Create polygon ring
-    ring = [(lng[0], lat[0]), (lng[0], lat[1]), (lng[1], lat[1]), (lng[1], lat[0])]
-    polygon = Polygon(ring)
-    # Polygon area in km2
-    return polygon.area/1000000
-
-def get_area_gpd(coords):
-    """
-    Calculate the area of a bounding box in square kilometers using GeoPandas, estimating the correct UTM CRS.
-
-    Args:
-        coords: Bounding box coordinates in lat1, lon1, lat2, lon2 order.
-    """
-    gdf = gpd.GeoDataFrame({"geometry": [box(coords[1], coords[0], coords[3], coords[2])]}, crs="EPSG:4326")
-    utm_crs = gdf.estimate_utm_crs()
-    gdf_utm = gdf.to_crs(utm_crs)
-    return gdf_utm.iloc[0].geometry.area/1000000

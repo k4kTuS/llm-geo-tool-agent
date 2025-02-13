@@ -5,27 +5,12 @@ import streamlit as st
 
 from langchain_core.messages import BaseMessage
 from langsmith import Client
+from shapely.geometry import shape
 from streamlit.components.v1 import html
 
-from agent import get_chat_history
+from agents.lg_tool_agent import get_chat_history
 
-def get_api_coords(coords):
-    """
-    Parse the rectangle coordinates from the Folium map data into a format that can be used by the tools API.
-    """
-    lon_min, lat_min = coords[0]
-    lon_max, lat_max = coords[2]
-    return [lat_min, lon_min, lat_max, lon_max]
-
-def get_center(coords):
-    """
-    Calculate the center of the rectangle based on its coordinates.
-    """
-    lon_min, lat_min = coords[0]
-    lon_max, lat_max = coords[2]
-    return [(lat_min + lat_max) / 2, (lon_min + lon_max) / 2]
-
-def parse_drawing_coords(map_data, drawing_type):
+def parse_drawing_geometry(map_data: dict, drawing_type: str) -> str:
     if not map_data["all_drawings"]:
         return None
     count = 0
@@ -35,8 +20,8 @@ def parse_drawing_coords(map_data, drawing_type):
             count = count + 1
             last_drawing = drawing
     if count != 1:
-        return None
-    return last_drawing["geometry"]["coordinates"]
+        return None 
+    return shape(last_drawing["geometry"]).wkt
 
 def post_feedback(run_id):
     # Every st widget with a defined key will be stored in the session state
