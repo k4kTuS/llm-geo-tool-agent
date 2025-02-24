@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from typing import Optional, Type
 
 from tools.input_schemas.base_schemas import BaseGeomInput
-from utils.geometry_utils import BoundingBox
+from schemas.geometry import BoundingBox
 from utils.tool_utils import get_map, get_color_counts, count_elevation_zones
 from utils.map_service_utils import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping
 

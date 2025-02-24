@@ -2,7 +2,7 @@ from langgraph.prebuilt import InjectedState
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated
 
-from utils.geometry_utils import BoundingBox
+from schemas.geometry import BoundingBox
 
 
 class TemperatureAnalysisInput(BaseModel):

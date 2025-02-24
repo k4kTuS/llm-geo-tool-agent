@@ -11,7 +11,7 @@ from agents.lg_tool_agent import build_graph, clear_chat_history, SYSTEM_MESSAGE
 from visualizations.drawmap import DrawMap
 from paths import PROJECT_ROOT
 from utils.streamlit_utils import *
-from utils.geometry_utils import BoundingBox, PointMarker
+from schemas.geometry import BoundingBox, PointMarker
 
 load_dotenv()
 cfg = configparser.ConfigParser()

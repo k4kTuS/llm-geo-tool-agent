@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from models import hotels_model
 from tools.input_schemas.hotel_schemas import HotelSuitabilitySchema
-from utils.geometry_utils import PointMarker
+from schemas.geometry import PointMarker
 from utils.tool_utils import find_square_for_marker
 
 

@@ -8,7 +8,7 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from tools.input_schemas.temperature_schemas import TemperatureAnalysisInput, TemeperatureForecastInput
-from utils.geometry_utils import BoundingBox
+from schemas.geometry import BoundingBox
 from utils.tool_utils import get_map
 
 

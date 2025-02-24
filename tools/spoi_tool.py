@@ -4,7 +4,7 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from tools.input_schemas.base_schemas import BaseGeomInput
-from utils.geometry_utils import BoundingBox
+from schemas.geometry import BoundingBox
 from utils.tool_utils import get_spoi_data
 
 

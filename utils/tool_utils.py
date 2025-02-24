@@ -10,7 +10,7 @@ from scipy.spatial import KDTree
 import streamlit as st
 
 from paths import DATA_DIR
-from utils.geometry_utils import BoundingBox, PointMarker
+from schemas.geometry import BoundingBox, PointMarker
 from utils.map_service_utils import *
 
 # DEM
