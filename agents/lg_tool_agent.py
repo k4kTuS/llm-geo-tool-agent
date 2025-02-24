@@ -12,7 +12,7 @@ import streamlit as st
 
 from paths import PROJECT_ROOT
 from tools import get_all_tools
-from utils.geometry_utils import BoundingBox, PointMarker
+from schemas.geometry import BoundingBox, PointMarker
 
 cfg = configparser.ConfigParser()
 cfg.read(f'{PROJECT_ROOT}/config.ini')
