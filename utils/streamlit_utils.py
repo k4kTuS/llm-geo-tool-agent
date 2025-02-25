@@ -8,7 +8,7 @@ from langsmith import Client
 from shapely.geometry import shape
 from streamlit.components.v1 import html
 
-from agents.lg_tool_agent import get_chat_history
+from utils.agent_utils import get_chat_history
 
 def parse_drawing_geometry(map_data: dict, drawing_type: str) -> str:
     if not map_data["all_drawings"]:

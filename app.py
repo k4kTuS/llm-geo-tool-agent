@@ -7,11 +7,12 @@ from langchain_core.messages import HumanMessage
 import streamlit as st
 from streamlit_folium import st_folium
 
-from agents.lg_tool_agent import build_graph, clear_chat_history
+from agents.lg_tool_agent import build_graph
 from visualizations.drawmap import DrawMap
 from paths import PROJECT_ROOT
 from utils.streamlit_utils import *
 from schemas.geometry import BoundingBox, PointMarker
+from utils.agent_utils import clear_chat_history
 
 load_dotenv()
 cfg = configparser.ConfigParser()

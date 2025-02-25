@@ -13,6 +13,7 @@ import streamlit as st
 from paths import PROJECT_ROOT
 from tools import get_all_tools
 from schemas.geometry import BoundingBox, PointMarker
+from utils.agent_utils import get_chat_history
 
 cfg = configparser.ConfigParser()
 cfg.read(f'{PROJECT_ROOT}/config.ini')
@@ -37,14 +38,6 @@ class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
     bounding_box: BoundingBox
     hotel_site_marker: PointMarker
-
-def get_chat_history(session_id: str) -> InMemoryChatMessageHistory:
-    if f'chat_history_{session_id}' not in st.session_state:
-        st.session_state[f'chat_history_{session_id}'] = InMemoryChatMessageHistory()
-    return st.session_state[f'chat_history_{session_id}']
-
-def clear_chat_history(session_id: str):
-    st.session_state[f'chat_history_{session_id}'] = InMemoryChatMessageHistory()
 
 @st.cache_resource
 def build_graph():
