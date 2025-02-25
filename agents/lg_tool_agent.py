@@ -1,6 +1,5 @@
 import configparser
 
-from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, END, StateGraph
@@ -39,39 +38,36 @@ class AgentState(TypedDict):
     bounding_box: BoundingBox
     hotel_site_marker: PointMarker
 
-@st.cache_resource
-def build_graph():
-    llm = ChatOpenAI(
-        model=cfg['OPENAI']['model_id'],
-        temperature=0,
-        max_retries=2,
-    )
+llm = ChatOpenAI(
+    model=cfg['OPENAI']['model_id'],
+    temperature=0,
+    max_retries=2,
+)
 
-    llm_with_tools = llm.bind_tools(get_all_tools())
+llm_with_tools = llm.bind_tools(get_all_tools())
 
-    def should_continue(state: AgentState, config: RunnableConfig):
-        msgs = state["messages"]
-        last_message = msgs[-1]
-        if last_message.tool_calls:
-            return "tools"
+def should_continue(state: AgentState, config: RunnableConfig):
+    msgs = state["messages"]
+    last_message = msgs[-1]
+    if last_message.tool_calls:
+        return "tools"
 
-        get_chat_history(config["configurable"]["session_id"]).add_messages(msgs)
-        return END
+    get_chat_history(config["configurable"]["session_id"]).add_messages(msgs)
+    return END
 
-    def call_model(state: AgentState, config: RunnableConfig):
-        chat_history = get_chat_history(config["configurable"]["session_id"])
-        msgs = [SystemMessage(content=SYSTEM_MESSAGE)] + list(chat_history.messages) + state["messages"]
-        response = llm_with_tools.with_config({"run_name": cfg['LANGSMITH']['model_run_name']}).invoke(msgs)
-        return {"messages": [response]}
+def call_model(state: AgentState, config: RunnableConfig):
+    chat_history = get_chat_history(config["configurable"]["session_id"])
+    msgs = [SystemMessage(content=SYSTEM_MESSAGE)] + list(chat_history.messages) + state["messages"]
+    response = llm_with_tools.with_config({"run_name": cfg['LANGSMITH']['model_run_name']}).invoke(msgs)
+    return {"messages": [response]}
 
-    workflow = StateGraph(AgentState)
+workflow = StateGraph(AgentState)
 
-    workflow.add_node("agent", call_model)
-    workflow.add_node("tools", ToolNode(get_all_tools()))
+workflow.add_node("agent", call_model)
+workflow.add_node("tools", ToolNode(get_all_tools()))
 
-    workflow.add_edge(START, "agent")
-    workflow.add_conditional_edges("agent", should_continue, ["tools", END])
-    workflow.add_edge("tools", "agent")
+workflow.add_edge(START, "agent")
+workflow.add_conditional_edges("agent", should_continue, ["tools", END])
+workflow.add_edge("tools", "agent")
 
-    app = workflow.compile()
-    return app
+geo_agent = workflow.compile()
