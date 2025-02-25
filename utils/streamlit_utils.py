@@ -1,5 +1,6 @@
 import json
 import re
+import time
 
 import streamlit as st
 
@@ -83,7 +84,12 @@ def write_message(message: BaseMessage):
 def write_conversation():
     chat_history = get_chat_history(st.session_state["user"])
     for m in chat_history.messages:
-        write_message(m)
+        alternative_id = getattr(m, "alternative_id", None)
+        if alternative_id:
+            alt_msg = st.session_state["all_messages"][alternative_id]
+            write_comparison_messages(m, alt_msg)
+        else:
+            write_message(m)
 
 def add_pill_to_chat_input(pill):
     # Remove the emoji from the pill
@@ -104,3 +110,69 @@ def add_pill_to_chat_input(pill):
         </script>
         """
     html(js, height=0, width=0)
+
+def write_comparison_messages(main_msg, alt_msg):
+    choice_clicked = getattr(main_msg, 'choice_clicked', None)
+    # Ensure random message order because of A/B testing
+    msg_A, msg_B = sorted([main_msg, alt_msg], key=lambda x: x.id.split('-')[1][0])
+
+    with st.chat_message("ai", avatar="🌿"):
+        # User already selected preferred message, display only message present in history
+        if choice_clicked:
+            st.button(label="🔄 Swap preferred response", on_click=lambda: swap_preferred_message(main_msg, alt_msg))
+            st.markdown(main_msg.content.replace("\n", "  \n"), unsafe_allow_html=True)
+        else:
+            col1, col2 = st.columns(2) 
+            col1.html(
+                '''
+                <div style="
+                    background-color: #f0f2f6; 
+                    padding: 10px; 
+                    border-radius: 10px;
+                    border: 2px solid #ddd;
+                ">
+                <strong>Option A</strong>
+                '''
+            )
+            col1.markdown(msg_A.content.replace("\n", "  \n"))
+
+            col2.html(
+                '''
+                <div style="
+                    background-color: #f0f2f6; 
+                    padding: 10px; 
+                    border-radius: 10px;
+                    border: 2px solid #ddd;
+                ">
+                <strong>Option B</strong>
+                '''
+            )
+            col2.markdown(msg_B.content.replace("\n", "  \n"))
+
+            # Feedback section
+            # TODO - connect feedback to LangSmith
+            preferred_option = st.radio("**Which option do you prefer?**", ["Option A", "Option B"], index=None, horizontal=True)
+            feedback_text = st.text_input("Why do you like your selected option?")
+
+            if st.button("Submit"):
+                if preferred_option:
+                    st.success(f"Thanks for your feedback! You chose: {preferred_option}")
+                    choose_preferred_message(main_msg, alt_msg, preferred_option)
+                    time.sleep(2)
+                    st.rerun()
+                else:
+                    st.warning("Please select an option before submitting.")
+
+def choose_preferred_message(main_msg, alt_msg, preferred_option):
+    msg_A, msg_B = sorted([main_msg, alt_msg], key=lambda x: x.id.split('-')[1][0])
+    main_msg.choice_clicked = True
+
+    if preferred_option == "Option A":
+        main_msg.content, alt_msg.content = msg_A.content, msg_B.content
+    elif preferred_option == "Option B":
+        main_msg.content, alt_msg.content = msg_B.content, msg_A.content
+
+# TODO - preserve original message ids and other metadata after content swap?
+def swap_preferred_message(main_msg, alt_msg):
+    main_msg.content, alt_msg.content = alt_msg.content, main_msg.content
+    

@@ -9,6 +9,7 @@ import streamlit as st
 from streamlit_folium import st_folium
 
 from agents.geo_agent import geo_agent
+from agents.comparison_geo_agent import comparison_geo_agent
 from visualizations.drawmap import DrawMap
 from paths import PROJECT_ROOT
 from utils.streamlit_utils import *
@@ -25,6 +26,8 @@ if "feedback_ids" not in st.session_state:
     st.session_state["feedback_ids"] = {}
 if "inputs_disabled" not in st.session_state:
     st.session_state["inputs_disabled"] = False
+if "all_messages" not in st.session_state:
+    st.session_state["all_messages"] = {}
 
 st.set_page_config(
     page_title="PoliRuralPlus Chat Assistant",
@@ -114,7 +117,7 @@ def show_chat_app():
                 },
             }
 
-            agent: CompiledStateGraph = geo_agent
+            agent: CompiledStateGraph = comparison_geo_agent
             with st.spinner("Give me a second, I am thinking..."):
                 with callbacks.collect_runs() as cb:
                     last_message_id = 0
