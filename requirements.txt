@@ -21,3 +21,5 @@ shapely
 streamlit
 streamlit_folium
 typing-extensions
+openmeteo_requests
+tabulate
