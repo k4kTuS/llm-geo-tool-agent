@@ -8,7 +8,7 @@ from langgraph.graph.state import CompiledStateGraph
 import streamlit as st
 from streamlit_folium import st_folium
 
-from agents.lg_tool_agent import geo_agent
+from agents.geo_agent import geo_agent
 from visualizations.drawmap import DrawMap
 from paths import PROJECT_ROOT
 from utils.streamlit_utils import *
