@@ -27,7 +27,7 @@ if "inputs_disabled" not in st.session_state:
 st.set_page_config(
     page_title="PoliRuralPlus Chat Assistant",
     page_icon="🌿",
-    layout="centered",
+    layout="wide" if "user" in st.session_state else "centered",
     initial_sidebar_state="auto",
 )
 
@@ -36,19 +36,22 @@ def disable_inputs():
 
 def show_login_form():
     st.title("Login")
-    username_input = st.text_input("Enter your username")
-    password_input = st.text_input("Enter the early access password", type="password")
 
-    if st.button("Login"):
-        if not username_input:
-            st.warning("Please enter your username.")
-        elif password_input != st.secrets["EA_PASSWORD"]:
-            st.error("Incorrect password. Please try again.")
-        else:
-            st.session_state["user"] = username_input
-            st.success(f"Welcome, {username_input}! Redirecting you to chat assistant...")
-            time.sleep(1)
-            st.rerun()
+    with st.form("login_form"):
+        username_input = st.text_input("Enter your username")
+        password_input = st.text_input("Enter the early access password", type="password")
+        submit_button = st.form_submit_button("Login")
+
+        if submit_button:
+            if not username_input:
+                st.warning("Please enter your username.")
+            elif password_input != st.secrets["EA_PASSWORD"]:
+                st.error("Incorrect password. Please try again.")
+            else:
+                st.session_state["user"] = username_input
+                st.success(f"Welcome, {username_input}! Redirecting you to chat assistant...")
+                time.sleep(1)
+                st.rerun()
 
 def show_chat_app():
     st.title("🌿 PoliRuralPlus Chat Assistant")
