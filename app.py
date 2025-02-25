@@ -7,7 +7,7 @@ from langchain_core.messages import HumanMessage
 import streamlit as st
 from streamlit_folium import st_folium
 
-from agents.lg_tool_agent import build_graph, clear_chat_history, SYSTEM_MESSAGE_TEMPLATE
+from agents.lg_tool_agent import build_graph, clear_chat_history
 from visualizations.drawmap import DrawMap
 from paths import PROJECT_ROOT
 from utils.streamlit_utils import *

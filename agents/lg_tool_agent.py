@@ -1,7 +1,7 @@
 import configparser
 
 from langchain_core.chat_history import InMemoryChatMessageHistory
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, END, StateGraph
 from langgraph.graph.message import add_messages
@@ -17,7 +17,7 @@ from schemas.geometry import BoundingBox, PointMarker
 cfg = configparser.ConfigParser()
 cfg.read(f'{PROJECT_ROOT}/config.ini')
 
-SYSTEM_MESSAGE_TEMPLATE = """
+SYSTEM_MESSAGE = """
 You are a helpful assistant working with geographical data. Some questions will be tied to an area defined by bounding box coordinates.
 These coordinates represent a geographical area on the map. You do not need to ask for the coordinates; allways assume you already know the coordinates of the area you are working with.
 
@@ -34,7 +34,7 @@ class AgentState(TypedDict):
         bounding_box: Bounding box instance representing a geographical area of interest.
         hotel_site_marker: Coordinates of a potential hotel site marker.
     """
-    messages: Annotated[list, add_messages]
+    messages: Annotated[list[AnyMessage], add_messages]
     bounding_box: BoundingBox
     hotel_site_marker: PointMarker
 
@@ -67,7 +67,7 @@ def build_graph():
 
     def call_model(state: AgentState, config: RunnableConfig):
         chat_history = get_chat_history(config["configurable"]["session_id"])
-        msgs = [SystemMessage(content=SYSTEM_MESSAGE_TEMPLATE)] + list(chat_history.messages) + state["messages"]
+        msgs = [SystemMessage(content=SYSTEM_MESSAGE)] + list(chat_history.messages) + state["messages"]
         response = llm_with_tools.with_config({"run_name": cfg['LANGSMITH']['model_run_name']}).invoke(msgs)
         return {"messages": [response]}
 
