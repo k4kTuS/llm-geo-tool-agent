@@ -17,9 +17,9 @@ class WeatherForecastTool(BaseTool):
     description: str = (
         "A tool for retrieving weather forecast data based on a given bounding box. "
         "It supports both hourly and daily forecasts for up to 16 days. "
-        "Returns the following weather variables: "
-        "temperature_2m, relative_humidity_2m, precipitation_probability, precipitation, "
-        "wind_speed_10m, wind_direction_10m, wind_gusts_10m, soil_temperature_0cm, soil_moisture_0_to_1cm."
+        "\nReturns the following weather variables:"
+        "\nhourly data: temperature, humidity, precipitation, wind speed, gusts and direction, soil temperature and moisture"
+        "\ndaily data: max and min temperature, daylight and sunshine duration, precipitation and precipitation hours, wind speed, gusts and dominnat direction"
     )
     args_schema: Optional[Type[BaseModel]] = OpenmeteoForecastInput
 
@@ -30,7 +30,8 @@ class WeatherForecastTool(BaseTool):
         lon_grid = np.linspace(lon1, lon2, GRID_SIZE)
         grid_points = [(lat, lon) for lat in lat_grid for lon in lon_grid]
         
-        forecast_days = 16 if forecast_days > 16 else forecast_days
+        # Limit forecast days to 16
+        forecast_days = max(1, min(forecast_days, 16))
         if forecast_type == "hourly":
             hourly_data = get_hourly_data(grid_points, forecast_days)
             return f"Hourly weather data for the next {forecast_days} days:\n"\
