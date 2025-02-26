@@ -115,11 +115,16 @@ def write_comparison_messages(main_msg, alt_msg):
     choice_clicked = getattr(main_msg, 'choice_clicked', None)
     # Ensure random message order because of A/B testing
     msg_A, msg_B = sorted([main_msg, alt_msg], key=lambda x: x.id.split('-')[1][0])
+    element_id = f"{main_msg.id}_{alt_msg.id}"
 
     with st.chat_message("ai", avatar="🌿"):
         # User already selected preferred message, display only message present in history
         if choice_clicked:
-            st.button(label="🔄 Swap preferred response", on_click=lambda: swap_preferred_message(main_msg, alt_msg))
+            st.button(
+                label="🔄 Swap preferred response",
+                on_click=lambda: swap_preferred_message(main_msg, alt_msg),
+                key=f"swap_btn_{element_id}"
+            )
             st.markdown(main_msg.content.replace("\n", "  \n"), unsafe_allow_html=True)
         else:
             col1, col2 = st.columns(2) 
@@ -151,10 +156,19 @@ def write_comparison_messages(main_msg, alt_msg):
 
             # Feedback section
             # TODO - connect feedback to LangSmith
-            preferred_option = st.radio("**Which option do you prefer?**", ["Option A", "Option B"], index=None, horizontal=True)
-            feedback_text = st.text_input("Why do you like your selected option?")
+            preferred_option = st.radio(
+                "**Which option do you prefer?**",
+                ["Option A", "Option B"],
+                index=None,
+                horizontal=True,
+                key=f"ab_radio_{element_id}"
+            )
+            feedback_text = st.text_input(
+                "Why do you like your selected option?",
+                key=f"fb_txt_{element_id}"
+            )
 
-            if st.button("Submit"):
+            if st.button("Submit", key=f"ab_submit_btn_{element_id}"):
                 if preferred_option:
                     st.success(f"Thanks for your feedback! You chose: {preferred_option}")
                     choose_preferred_message(main_msg, alt_msg, preferred_option)
