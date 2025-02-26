@@ -4,14 +4,17 @@ import time
 from dotenv import load_dotenv
 from langchain import callbacks
 from langchain_core.messages import HumanMessage
+from langgraph.graph.state import CompiledStateGraph
 import streamlit as st
 from streamlit_folium import st_folium
 
-from agents.lg_tool_agent import build_graph, clear_chat_history, SYSTEM_MESSAGE_TEMPLATE
+from agents.geo_agent import geo_agent
+from agents.comparison_geo_agent import comparison_geo_agent
 from visualizations.drawmap import DrawMap
 from paths import PROJECT_ROOT
 from utils.streamlit_utils import *
 from schemas.geometry import BoundingBox, PointMarker
+from utils.agent_utils import clear_chat_history
 
 load_dotenv()
 cfg = configparser.ConfigParser()
@@ -23,11 +26,13 @@ if "feedback_ids" not in st.session_state:
     st.session_state["feedback_ids"] = {}
 if "inputs_disabled" not in st.session_state:
     st.session_state["inputs_disabled"] = False
+if "all_messages" not in st.session_state:
+    st.session_state["all_messages"] = {}
 
 st.set_page_config(
     page_title="PoliRuralPlus Chat Assistant",
     page_icon="🌿",
-    layout="centered",
+    layout="wide" if "user" in st.session_state else "centered",
     initial_sidebar_state="auto",
 )
 
@@ -36,19 +41,22 @@ def disable_inputs():
 
 def show_login_form():
     st.title("Login")
-    username_input = st.text_input("Enter your username")
-    password_input = st.text_input("Enter the early access password", type="password")
 
-    if st.button("Login"):
-        if not username_input:
-            st.warning("Please enter your username.")
-        elif password_input != st.secrets["EA_PASSWORD"]:
-            st.error("Incorrect password. Please try again.")
-        else:
-            st.session_state["user"] = username_input
-            st.success(f"Welcome, {username_input}! Redirecting you to chat assistant...")
-            time.sleep(1)
-            st.rerun()
+    with st.form("login_form"):
+        username_input = st.text_input("Enter your username")
+        password_input = st.text_input("Enter the early access password", type="password")
+        submit_button = st.form_submit_button("Login")
+
+        if submit_button:
+            if not username_input:
+                st.warning("Please enter your username.")
+            elif password_input != st.secrets["EA_PASSWORD"]:
+                st.error("Incorrect password. Please try again.")
+            else:
+                st.session_state["user"] = username_input
+                st.success(f"Welcome, {username_input}! Redirecting you to chat assistant...")
+                time.sleep(1)
+                st.rerun()
 
 def show_chat_app():
     st.title("🌿 PoliRuralPlus Chat Assistant")
@@ -109,11 +117,11 @@ def show_chat_app():
                 },
             }
 
-            app = build_graph()
+            agent: CompiledStateGraph = comparison_geo_agent
             with st.spinner("Give me a second, I am thinking..."):
                 with callbacks.collect_runs() as cb:
                     last_message_id = 0
-                    for chunk in app.stream(
+                    for chunk in agent.stream(
                         {
                             "messages": [HumanMessage(content=prompt)],
                             "bounding_box": bbox,
