@@ -1,5 +1,6 @@
 import configparser
 import time
+import uuid
 
 from dotenv import load_dotenv
 from langchain import callbacks
@@ -20,10 +21,6 @@ load_dotenv()
 cfg = configparser.ConfigParser()
 cfg.read(f'{PROJECT_ROOT}/config.ini')
 
-if "message_to_run_ids" not in st.session_state:
-    st.session_state["message_to_run_ids"] = {}
-if "feedback_ids" not in st.session_state:
-    st.session_state["feedback_ids"] = {}
 if "inputs_disabled" not in st.session_state:
     st.session_state["inputs_disabled"] = False
 if "all_messages" not in st.session_state:
@@ -104,9 +101,12 @@ def show_chat_app():
         else:
             bbox = BoundingBox(wkt=st.session_state["selected_area_wkt"])
             hotel_site_marker = PointMarker(wkt=st.session_state["hotel_site_wkt"]) if st.session_state["hotel_site_wkt"] else None
+            
+            run_id = uuid.uuid4() # For langsmith
             config = {
+                "run_id": run_id,
                 "configurable": {
-                    "session_id": st.session_state["user"],
+                    "run_id": run_id, # Used for feedback, accessible from graph nodes
                 },
                 "metadata": {
                     "bounding_box_wkt": bbox.wkt,
@@ -114,28 +114,25 @@ def show_chat_app():
                     "hotel_site_marker_wkt": hotel_site_marker.wkt if hotel_site_marker else None,
                 },
             }
+            input = {
+                "messages": [HumanMessage(content=prompt)],
+                "bounding_box": bbox,
+                "hotel_site_marker": hotel_site_marker,
+            }
 
             agent: CompiledStateGraph = comparison_geo_agent
             with st.spinner("Give me a second, I am thinking..."):
-                with callbacks.collect_runs() as cb:
-                    last_message_id = 0
-                    for chunk in agent.stream(
-                        {
-                            "messages": [HumanMessage(content=prompt)],
-                            "bounding_box": bbox,
-                            "hotel_site_marker": hotel_site_marker,
-                        },
-                        config=config,
-                        stream_mode="values",
-                    ):
-                        for i in range(last_message_id, len(chunk["messages"])):
-                            message = chunk["messages"][i]
-                            run_id = None
-                            if (cb.traced_runs and cb.traced_runs[-1].name == cfg['LANGSMITH']['model_run_name']):
-                                run_id = cb.traced_runs[-1].id
-                            st.session_state["message_to_run_ids"][message.id] = run_id
-                            write_message(message)
-                        last_message_id = len(chunk["messages"])
+                last_message_id = 0
+                for chunk in agent.stream(
+                    input=input,
+                    config=config,
+                    stream_mode="values",
+                ):
+                    for i in range(last_message_id, len(chunk["messages"])):
+                        message = chunk["messages"][i]
+                        write_message(message)
+                    last_message_id = len(chunk["messages"])
+                
         st.session_state["inputs_disabled"] = False
         st.rerun()
 

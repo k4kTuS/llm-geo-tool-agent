@@ -53,6 +53,7 @@ def should_continue(state: AgentState, config: RunnableConfig):
         return "tools"
 
     get_chat_history().add_messages(msgs)
+    last_message.run_id = config["configurable"]["run_id"]
     return END
 
 def call_model(state: AgentState, config: RunnableConfig):
