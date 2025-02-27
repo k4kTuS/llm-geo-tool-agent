@@ -57,7 +57,7 @@ def should_continue(state: AgentState, config: RunnableConfig):
             return ["alternative", "tools"]
         return "tools"
 
-    get_chat_history(config["configurable"]["session_id"]).add_messages(msgs)
+    get_chat_history().add_messages(msgs)
     for m in msgs:
         st.session_state["all_messages"][m.id] = m
     alternative = state.get("alternative_response", None)
@@ -68,9 +68,9 @@ def should_continue(state: AgentState, config: RunnableConfig):
     return END
 
 def call_model(state: AgentState, config: RunnableConfig):
-    chat_history = get_chat_history(config["configurable"]["session_id"])
+    chat_history = get_chat_history()
     msgs = [SystemMessage(content=SYSTEM_MESSAGE)] + list(chat_history.messages) + state["messages"]
-    response = llm_with_tools.with_config({"run_name": cfg['LANGSMITH']['model_run_name']}).invoke(msgs)
+    response = llm_with_tools.invoke(msgs)
     return {"messages": [response]}
 
 def call_without_tools(state: AgentState, config: RunnableConfig):

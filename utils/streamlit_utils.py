@@ -82,7 +82,7 @@ def write_message(message: BaseMessage):
                 st.markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
 
 def write_conversation():
-    chat_history = get_chat_history(st.session_state["user"])
+    chat_history = get_chat_history()
     for m in chat_history.messages:
         alternative_id = getattr(m, "alternative_id", None)
         if alternative_id:
