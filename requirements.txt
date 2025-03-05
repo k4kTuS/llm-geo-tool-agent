@@ -6,6 +6,7 @@ geopandas
 langchain
 langchain-community
 langchain-groq
+langchain-ollama
 langchain-openai
 langgraph
 langsmith

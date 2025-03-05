@@ -5,14 +5,13 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, END, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
-from langchain_openai import ChatOpenAI
 from typing_extensions import Annotated, TypedDict, Optional
 import streamlit as st
 
 from paths import PROJECT_ROOT
 from tools import get_all_tools
 from schemas.geometry import BoundingBox, PointMarker
-from utils.agent_utils import get_chat_history
+from utils.agent_utils import get_chat_history, get_llm
 
 cfg = configparser.ConfigParser()
 cfg.read(f'{PROJECT_ROOT}/config.ini')
@@ -38,11 +37,7 @@ class AgentState(TypedDict):
     bounding_box: BoundingBox
     hotel_site_marker: PointMarker
 
-llm = ChatOpenAI(
-    model=cfg['OPENAI']['model_id'],
-    temperature=0,
-    max_retries=2,
-)
+llm = get_llm()
 
 llm_with_tools = llm.bind_tools(get_all_tools())
 
