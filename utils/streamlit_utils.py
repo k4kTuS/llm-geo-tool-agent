@@ -86,10 +86,12 @@ def write_message(message: AnyMessage):
             )
 
     if st.session_state["show_tool_calls"]:
-        if "tool_calls" in message.additional_kwargs:
+        tool_calls = getattr(message, "tool_calls", None)
+        if tool_calls is not None and len(tool_calls) > 0:
+            print("Tool calls:", tool_calls)
             gen_tools_msg = st.chat_message("tool", avatar="🛠️")
             with gen_tools_msg.expander("Generated tool calls:"):
-                st.markdown(print_tool_calls(message.tool_calls))
+                st.markdown(print_tool_calls(tool_calls))
         elif message.type == "tool":
             tool_msg = st.chat_message("tool", avatar="🛠️")
             with tool_msg.expander(message.name):
