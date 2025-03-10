@@ -88,7 +88,6 @@ def write_message(message: AnyMessage):
     if st.session_state["show_tool_calls"]:
         tool_calls = getattr(message, "tool_calls", None)
         if tool_calls is not None and len(tool_calls) > 0:
-            print("Tool calls:", tool_calls)
             gen_tools_msg = st.chat_message("tool", avatar="🛠️")
             with gen_tools_msg.expander("Generated tool calls:"):
                 st.markdown(print_tool_calls(tool_calls))
@@ -99,6 +98,10 @@ def write_message(message: AnyMessage):
 
 def write_conversation():
     chat_history = get_chat_history()
+    if "filtered_tools" in st.session_state and st.session_state["show_tool_calls"]:
+        with st.expander("Filtered tools"):
+            st.write(st.session_state["filtered_tools"])
+
     for m in chat_history.messages:
         alternative_id = getattr(m, "alternative_id", None)
         if alternative_id:
