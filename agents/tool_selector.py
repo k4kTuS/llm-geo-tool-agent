@@ -10,7 +10,6 @@ from paths import PROJECT_ROOT
 @st.cache_resource
 def load_emb_model():
     return SentenceTransformer("intfloat/multilingual-e5-small")
-    return None
 
 base_prompt = """
 Given the user's query, analyze and refine it by splitting it into independent topics that may be related to the list of given tools.

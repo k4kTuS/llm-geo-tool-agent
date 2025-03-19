@@ -8,6 +8,7 @@ from typing import Optional, Type, Literal
 
 from tools.input_schemas.openmeteo_schemas import OpenmeteoForecastInput
 from schemas.geometry import BoundingBox
+from schemas.data import DataResponse
 
 GRID_SIZE = 4
 OPENMETEO_URL = "https://api.open-meteo.com/v1/forecast"
@@ -22,6 +23,7 @@ class WeatherForecastTool(BaseTool):
         "\ndaily data: max and min temperature, daylight and sunshine duration, precipitation and precipitation hours, wind speed, gusts and dominnat direction"
     )
     args_schema: Optional[Type[BaseModel]] = OpenmeteoForecastInput
+    response_format: str = "content_and_artifact"
 
     def _run(self, bounding_box: BoundingBox, forecast_days: int, forecast_type: Literal["hourly", "daily"]):
         lat1, lon1, lat2, lon2 = bounding_box.bounds_latlon()
@@ -34,12 +36,27 @@ class WeatherForecastTool(BaseTool):
         forecast_days = max(1, min(forecast_days, 16))
         if forecast_type == "hourly":
             hourly_data = get_hourly_data(grid_points, forecast_days)
-            return f"Hourly weather data for the next {forecast_days} days:\n"\
-                + hourly_data.to_markdown(index=False) + "\n\n"
+            text_output = f"Hourly weather data for the next {forecast_days} days:\n"\
+                + hourly_data.to_markdown(index=False)
+            data_output = DataResponse(
+                name="Weather forecast data",
+                source="OpenMeteo",
+                data_type="dataframe",
+                data=hourly_data,
+                show_data=True
+            )   
         elif forecast_type == "daily":
             daily_data = get_daily_data(grid_points, forecast_days)
-            return f"Daily weather data for the next {forecast_days} days:\n"\
+            text_output =  f"Daily weather data for the next {forecast_days} days:\n"\
                 + daily_data.to_markdown(index=False)
+            data_output = DataResponse(
+                name="Weather forecast data",
+                source="OpenMeteo",
+                data_type="dataframe",
+                data=daily_data,
+                show_data=True
+            )
+        return text_output, data_output
 
 def get_hourly_data(grid_points, forecast_days) -> pd.DataFrame:
     params = {
