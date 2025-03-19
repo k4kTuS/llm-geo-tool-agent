@@ -7,11 +7,31 @@ from pydantic import BaseModel
 from typing import Optional, Type, Literal
 
 from tools.input_schemas.openmeteo_schemas import OpenmeteoForecastInput
+from tools.input_schemas.base_schemas import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
 
 GRID_SIZE = 4
 OPENMETEO_URL = "https://api.open-meteo.com/v1/forecast"
+
+class CurrentWeatherTool(BaseTool):
+    name: str = "current_weather"
+    description: str = (
+        "A tool for retrieving current weather data based on a given bounding box."
+        "It supports the following weather variables: temperature, humidity, precipitation, wind speed, gusts and direction, soil temperature and moisture"
+    )
+    args_schema: Optional[Type[BaseModel]] = BaseGeomInput
+
+    def _run(self, bounding_box: BoundingBox):
+        lat1, lon1, lat2, lon2 = bounding_box.bounds_latlon()
+
+        lat_grid = np.linspace(lat1, lat2, GRID_SIZE)
+        lon_grid = np.linspace(lon1, lon2, GRID_SIZE)
+        grid_points = [(lat, lon) for lat in lat_grid for lon in lon_grid]
+
+        current_data = get_current_data(grid_points)
+        return f"Current weather data for the selected region:\n"\
+            + current_data
 
 class WeatherForecastTool(BaseTool):
     name: str = "weather_forecast"
@@ -184,3 +204,90 @@ def get_daily_data(grid_points, forecast_days) -> pd.DataFrame:
     ).reset_index()
 
     return daily_area_summary
+
+def get_current_data(grid_points) -> str:
+    params = {
+        "latitude": [lat for lat, _ in grid_points],
+        "longitude": [lon for _, lon in grid_points],
+        "current": ["temperature_2m", "relative_humidity_2m", "precipitation_probability", "precipitation", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "soil_temperature_0cm", "soil_moisture_0_to_1cm"],
+        "timezone": "UTC"
+    }
+
+    openmeteo = openmeteo_requests.Client()
+    responses = openmeteo.weather_api(OPENMETEO_URL, params=params)
+
+    data = {
+        "temperature_2m": [],
+        "relative_humidity_2m": [],
+        "precipitation_probability": [],
+        "precipitation": [],
+        "wind_speed_10m": [],
+        "wind_direction_10m": [],
+        "wind_gusts_10m": [],
+        "soil_temperature_0cm": [],
+        "soil_moisture_0_to_1cm": [],
+    }
+    # Process all locations
+    for response in responses:
+        # Process current data. The order of variables needs to be the same as requested.
+        current = response.Current()
+        data["temperature_2m"].append(current.Variables(0).Value())
+        data["relative_humidity_2m"].append(current.Variables(1).Value())
+        data["precipitation_probability"].append(current.Variables(2).Value())
+        data["precipitation"].append(current.Variables(3).Value())
+        data["wind_speed_10m"].append(current.Variables(4).Value())
+        data["wind_direction_10m"].append(current.Variables(5).Value())
+        data["wind_gusts_10m"].append(current.Variables(6).Value())
+        data["soil_temperature_0cm"].append(current.Variables(7).Value())
+        data["soil_moisture_0_to_1cm"].append(current.Variables(8).Value())
+
+    # Define aggregation mapping
+    aggregated_data = {
+        # Temperature
+        "temperature_2m_mean": np.mean(data["temperature_2m"]),
+        "temperature_2m_min": np.min(data["temperature_2m"]),
+        "temperature_2m_max": np.max(data["temperature_2m"]),
+        "temperature_2m_std": np.std(data["temperature_2m"]),
+        # Humidity
+        "relative_humidity_2m_mean": np.mean(data["relative_humidity_2m"]),
+        "relative_humidity_2m_std": np.std(data["relative_humidity_2m"]),
+        # Precipitation
+        "precipitation_probability_max": np.max(data["precipitation_probability"]),
+        "precipitation_total": np.sum(data["precipitation"]),
+        # Wind
+        "wind_speed_10m_max": np.max(data["wind_speed_10m"]),
+        "wind_gusts_10m_max": np.max(data["wind_gusts_10m"]),
+        "wind_speed_10m_all": data["wind_speed_10m"],
+        "wind_direction_10m_all": data["wind_direction_10m"],
+        # Soil Temperature
+        "soil_temperature_0cm_mean": np.mean(data["soil_temperature_0cm"]),
+        "soil_temperature_0cm_min": np.min(data["soil_temperature_0cm"]),
+        "soil_temperature_0cm_max": np.max(data["soil_temperature_0cm"]),
+        # Soil Moisture
+        "soil_moisture_0_to_1cm_mean": np.mean(data["soil_moisture_0_to_1cm"]),
+        "soil_moisture_0_to_1cm_min": np.min(data["soil_moisture_0_to_1cm"]),
+        "soil_moisture_0_to_1cm_max": np.max(data["soil_moisture_0_to_1cm"]),
+    }
+
+    text_summary = (
+        f"**Temperature:** Avg: {aggregated_data['temperature_2m_mean']:.1f}°C, "
+        f"Min: {aggregated_data['temperature_2m_min']:.1f}°C, Max: {aggregated_data['temperature_2m_max']:.1f}°C "
+        f"(Std Dev: {aggregated_data['temperature_2m_std']:.1f}°C)\n"
+        
+        f"**Humidity:** {aggregated_data['relative_humidity_2m_mean']:.1f}% "
+        f"(Std Dev: {aggregated_data['relative_humidity_2m_std']:.1f}%)\n"
+        
+        f"**Precipitation:** {aggregated_data['precipitation_total']:.1f} mm "
+        f"(Max Chance: {aggregated_data['precipitation_probability_max']:.1f}%)\n"
+        
+        f"**Wind:** Max: {aggregated_data['wind_speed_10m_max']:.1f} km/h with Gusts (Max): {aggregated_data['wind_gusts_10m_max']:.1f} km/h\n"
+        f"**All wind measurements:**\n"
+        f"{", ".join([f"{speed:.1f} km/h from {direction:.1f}°" for speed, direction in zip(aggregated_data['wind_speed_10m_all'], aggregated_data['wind_direction_10m_all'])])}\n"
+        
+        f"**Soil Temperature:** Avg: {aggregated_data['soil_temperature_0cm_mean']:.1f}°C, "
+        f"Min: {aggregated_data['soil_temperature_0cm_min']:.1f}°C, Max: {aggregated_data['soil_temperature_0cm_max']:.1f}°C\n"
+        
+        f"**Soil Moisture:** Avg: {aggregated_data['soil_moisture_0_to_1cm_mean']:.2f} m³/m³, "
+        f"Min: {aggregated_data['soil_moisture_0_to_1cm_min']:.2f} m³/m³, Max: {aggregated_data['soil_moisture_0_to_1cm_max']:.2f} m³/m³"
+    )
+    return text_summary
