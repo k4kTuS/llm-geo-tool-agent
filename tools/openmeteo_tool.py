@@ -128,16 +128,53 @@ def get_hourly_data(grid_points, forecast_days) -> pd.DataFrame:
 
     # Aggregate hourly data from all locations
     hourly_area_summary = all_df.groupby("date").agg(
-        temperature_2m = ("temperature_2m", "mean"),
-        relative_humidity_2m = ("relative_humidity_2m", "mean"),
-        precipitation_probability = ("precipitation_probability", "mean"),
-        precipitation = ("precipitation", "sum"),
-        wind_speed_10m = ("wind_speed_10m", "mean"),
-        wind_direction_10m = ("wind_direction_10m", "mean"),
-        wind_gusts_10m = ("wind_gusts_10m", "mean"),
-        soil_temperature_0cm = ("soil_temperature_0cm", "mean"),
-        soil_moisture_0_to_1cm = ("soil_moisture_0_to_1cm", "mean")
+        # Temperature
+        temperature_2m_mean = ("temperature_2m", "mean"),
+        temperature_2m_min = ("temperature_2m", "min"),
+        temperature_2m_max = ("temperature_2m", "max"),
+        temperature_2m_std = ("temperature_2m", "std"),
+        # Humidity
+        relative_humidity_2m_mean = ("relative_humidity_2m", "mean"),
+        relative_humidity_2m_std = ("relative_humidity_2m", "std"),
+        # Precipitation
+        precipitation_probability_max = ("precipitation_probability", "max"),
+        precipitation_total = ("precipitation", "sum"),
+        # Wind
+        wind_speed_10m_max = ("wind_speed_10m", "max"),
+        wind_gusts_10m_max = ("wind_gusts_10m", "max"),
+        wind_direction_10m_list = ("wind_direction_10m", lambda x: [round(val, 2) for val in x]),
+        wind_speed_10m_list = ("wind_speed_10m", lambda x: [round(val, 2) for val in x]),
+        # Soil Temperature
+        soil_temperature_0cm_mean = ("soil_temperature_0cm", "mean"),
+        soil_temperature_0cm_max = ("soil_temperature_0cm", "min"),
+        soil_temperature_0cm_min = ("soil_temperature_0cm", "max"),
+        # Soil Moisture
+        soil_moisture_0_to_1cm_mean = ("soil_moisture_0_to_1cm", "mean"),
+        soil_moisture_0_to_1cm_max = ("soil_moisture_0_to_1cm", "max"),
+        soil_moisture_0_to_1cm_min = ("soil_moisture_0_to_1cm", "min"),
     ).reset_index()
+
+    hourly_area_summary.columns = [
+        'date',
+        'temperature_2m_mean (°C)',
+        'temperature_2m_min (°C)',
+        'temperature_2m_max (°C)',
+        'temperature_2m_std (°C)',
+        'relative_humidity_2m_mean (%)',
+        'relative_humidity_2m_std (%)',
+        'precipitation_probability_max (%)',
+        'precipitation_total (mm)',
+        'wind_speed_10m_max (km/h)',
+        'wind_gusts_10m_max (km/h)',
+        'wind_direction_10m_measurements (°)',
+        'wind_speed_10m_measurements (km/h)',
+        'soil_temperature_0cm_mean (°C)',
+        'soil_temperature_0cm_max (°C)',
+        'soil_temperature_0cm_min (°C)',
+        'soil_moisture_0_to_1cm_mean (m³/m³)',
+        'soil_moisture_0_to_1cm_max (m³/m³)',
+        'soil_moisture_0_to_1cm_min (m³/m³)'
+    ]
 
     return hourly_area_summary
 
@@ -200,8 +237,22 @@ def get_daily_data(grid_points, forecast_days) -> pd.DataFrame:
         precipitation_probability_max = ("precipitation_probability_max", "mean"),
         wind_speed_10m_max = ("wind_speed_10m_max", "mean"),
         wind_gusts_10m_max = ("wind_gusts_10m_max", "mean"),
-        wind_direction_10m_dominant = ("wind_direction_10m_dominant", "mean")
+        wind_direction_10m_dominant_list = ("wind_direction_10m_dominant",  lambda x: [round(val, 2) for val in x])
     ).reset_index()
+
+    daily_area_summary.columns = [
+        'date',
+        'temperature_2m_max (°C)',
+        'temperature_2m_min (°C)',
+        'daylight_duration (s)',
+        'sunshine_duration (s)',
+        'precipitation_sum (mm)',
+        'precipitation_hours (h)',
+        'precipitation_probability_max (%)',
+        'wind_speed_10m_max (km/h)',
+        'wind_gusts_10m_max (km/h)',
+        'wind_direction_10m_dominant_measurements (°)'
+    ]
 
     return daily_area_summary
 
