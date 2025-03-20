@@ -1,4 +1,5 @@
 import configparser
+from datetime import datetime
 
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
@@ -22,6 +23,8 @@ These coordinates represent a geographical area on the map. You do not need to a
 
 Whenever the task involves retrieving information about a location, assume the location is within the area defined by the bounding box coordinates.
 If you use tools, do not copy the data obtained from the tools directly to the response, but rather summarize it in a way that is easy to understand for the user.
+
+The current timestamp is: {timestamp}
 """
 
 class AgentState(TypedDict):
@@ -53,7 +56,8 @@ def should_continue(state: AgentState, config: RunnableConfig):
 
 def call_model(state: AgentState, config: RunnableConfig):
     chat_history = get_chat_history()
-    msgs = [SystemMessage(content=SYSTEM_MESSAGE)] + list(chat_history.messages) + state["messages"]
+    timestamp = datetime.now().strftime("%A, %Y-%m-%d %H:%M:%S")
+    msgs = [SystemMessage(content=SYSTEM_MESSAGE.format(timestamp=timestamp))] + list(chat_history.messages) + state["messages"]
     response = llm_with_tools.invoke(msgs)
     return {"messages": [response]}
 
