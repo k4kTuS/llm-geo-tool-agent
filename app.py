@@ -26,6 +26,8 @@ if "inputs_disabled" not in st.session_state:
     st.session_state["inputs_disabled"] = False
 if "all_messages" not in st.session_state:
     st.session_state["all_messages"] = {}
+if "thread_id" not in st.session_state:
+    st.session_state["thread_id"] = uuid.uuid4()
 
 st.set_page_config(
     page_title="PoliRuralPlus Chat Assistant",
@@ -71,6 +73,7 @@ def show_chat_app():
 
         if st.button(label="Clear chat history", disabled=st.session_state["inputs_disabled"]):
             clear_chat_history()
+            st.session_state["thread_id"] = uuid.uuid4()
             st.toast("Chat history cleared.", icon="🧹")
 
         st.subheader("Area of interest")
@@ -108,6 +111,7 @@ def show_chat_app():
                 "run_id": run_id,
                 "configurable": {
                     "run_id": run_id, # Used for feedback, accessible from graph nodes
+                    "session_id": f"{st.session_state["user"]}-{st.session_state["thread_id"]}", # Used to group traces in langsmith
                 },
                 "metadata": {
                     "bounding_box_wkt": bbox.wkt,
