@@ -14,6 +14,7 @@ from schemas.data import DataResponse
 
 GRID_SIZE = 4
 OPENMETEO_URL = "https://api.open-meteo.com/v1/forecast"
+FORECAST_DAYS_MAX = 7
 
 class CurrentWeatherTool(BaseTool):
     name: str = "current_weather"
@@ -38,7 +39,7 @@ class WeatherForecastTool(BaseTool):
     name: str = "weather_forecast"
     description: str = (
         "A tool for retrieving weather forecast data based on a given bounding box. "
-        "It supports both hourly and daily forecasts for up to 7 days. "
+        f"It supports both hourly and daily forecasts for up to {FORECAST_DAYS_MAX} days. "
         "Does not support historical data. "
         "\nReturns the following weather variables: "
         "\nhourly data: temperature, humidity, precipitation, wind speed, gusts and direction, soil temperature and moisture"
@@ -62,8 +63,8 @@ class WeatherForecastTool(BaseTool):
             return "Error: Could not provide historical weather data.", None
         
         date_range_str = f"for {start_date.strftime("%Y-%m-%d")}" if start_date == end_date else f"from {start_date.strftime("%Y-%m-%d")} to {end_date.strftime("%Y-%m-%d")}"
-        if (end_date - dt.now()).days > 6:
-            return f"Could not provide weather data {date_range_str}. Data is available only for up to 7 days from today, including today.", None
+        if (end_date - dt.now()).days > FORECAST_DAYS_MAX:
+            return f"Could not provide weather data {date_range_str}. Data is available only for up to {FORECAST_DAYS_MAX} days from today, including today.", None
 
         lat1, lon1, lat2, lon2 = bounding_box.bounds_latlon()
 
