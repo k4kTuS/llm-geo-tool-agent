@@ -11,8 +11,8 @@ from tools.input_schemas.openmeteo_schemas import OpenmeteoForecastInput
 from tools.input_schemas.base_schemas import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
+from utils.openmeteo_utils import generate_grid_points
 
-GRID_SIZE = 4
 OPENMETEO_URL = "https://api.open-meteo.com/v1/forecast"
 FORECAST_DAYS_MAX = 7
 
@@ -25,13 +25,7 @@ class CurrentWeatherTool(BaseTool):
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
 
     def _run(self, bounding_box: BoundingBox):
-        lat1, lon1, lat2, lon2 = bounding_box.bounds_latlon()
-
-        lat_grid = np.linspace(lat1, lat2, GRID_SIZE)
-        lon_grid = np.linspace(lon1, lon2, GRID_SIZE)
-        grid_points = [(lat, lon) for lat in lat_grid for lon in lon_grid]
-
-        current_data = get_current_data(grid_points)
+        current_data = get_current_data(generate_grid_points(bounding_box))
         return f"Current weather data for the selected region:\n"\
             + current_data
 
@@ -66,11 +60,7 @@ class WeatherForecastTool(BaseTool):
         if (end_date - dt.now()).days > FORECAST_DAYS_MAX:
             return f"Could not provide weather data {date_range_str}. Data is available only for up to {FORECAST_DAYS_MAX} days from today, including today.", None
 
-        lat1, lon1, lat2, lon2 = bounding_box.bounds_latlon()
-
-        lat_grid = np.linspace(lat1, lat2, GRID_SIZE)
-        lon_grid = np.linspace(lon1, lon2, GRID_SIZE)
-        grid_points = [(lat, lon) for lat in lat_grid for lon in lon_grid]
+        grid_points = generate_grid_points(bounding_box)
 
         if forecast_type == "hourly":
             hourly_data = get_hourly_data(grid_points, start_date, end_date)
@@ -102,10 +92,11 @@ def get_hourly_data(grid_points, start_date: dt, end_date: dt) -> pd.DataFrame:
     params = {
         "latitude": [lat for lat, _ in grid_points],
         "longitude": [lon for _, lon in grid_points],
-        "hourly": ["temperature_2m", "relative_humidity_2m", "precipitation_probability", "precipitation", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "soil_temperature_0cm", "soil_moisture_0_to_1cm"],
+        "hourly": ["temperature_2m", "relative_humidity_2m", "precipitation", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "soil_temperature_0cm", "soil_moisture_0_to_1cm"],
         "start_date": start_date.strftime("%Y-%m-%d"),
         "end_date": end_date.strftime("%Y-%m-%d"),
-        "timezone": "UTC"
+        "timezone": "UTC",
+        "models": "icon_seamless"
     }
 
     openmeteo = openmeteo_requests.Client()
@@ -127,13 +118,12 @@ def get_hourly_data(grid_points, start_date: dt, end_date: dt) -> pd.DataFrame:
 
         hourly_data["temperature_2m"] = hourly.Variables(0).ValuesAsNumpy()
         hourly_data["relative_humidity_2m"] = hourly.Variables(1).ValuesAsNumpy()
-        hourly_data["precipitation_probability"] = hourly.Variables(2).ValuesAsNumpy()
-        hourly_data["precipitation"] = hourly.Variables(3).ValuesAsNumpy()
-        hourly_data["wind_speed_10m"] = hourly.Variables(4).ValuesAsNumpy()
-        hourly_data["wind_direction_10m"] = hourly.Variables(5).ValuesAsNumpy()
-        hourly_data["wind_gusts_10m"] = hourly.Variables(6).ValuesAsNumpy()
-        hourly_data["soil_temperature_0cm"] = hourly.Variables(7).ValuesAsNumpy()
-        hourly_data["soil_moisture_0_to_1cm"] = hourly.Variables(8).ValuesAsNumpy()
+        hourly_data["precipitation"] = hourly.Variables(2).ValuesAsNumpy()
+        hourly_data["wind_speed_10m"] = hourly.Variables(3).ValuesAsNumpy()
+        hourly_data["wind_direction_10m"] = hourly.Variables(4).ValuesAsNumpy()
+        hourly_data["wind_gusts_10m"] = hourly.Variables(5).ValuesAsNumpy()
+        hourly_data["soil_temperature_0cm"] = hourly.Variables(6).ValuesAsNumpy()
+        hourly_data["soil_moisture_0_to_1cm"] = hourly.Variables(7).ValuesAsNumpy()
 
         hourly_dataframe = pd.DataFrame(data = hourly_data)
         all_df = pd.concat([all_df, hourly_dataframe])
@@ -149,7 +139,6 @@ def get_hourly_data(grid_points, start_date: dt, end_date: dt) -> pd.DataFrame:
         relative_humidity_2m_mean = ("relative_humidity_2m", "mean"),
         relative_humidity_2m_std = ("relative_humidity_2m", "std"),
         # Precipitation
-        precipitation_probability_max = ("precipitation_probability", "max"),
         precipitation_total = ("precipitation", "sum"),
         # Wind
         wind_speed_10m_max = ("wind_speed_10m", "max"),
@@ -174,7 +163,6 @@ def get_hourly_data(grid_points, start_date: dt, end_date: dt) -> pd.DataFrame:
         'temperature_2m_std (°C)',
         'relative_humidity_2m_mean (%)',
         'relative_humidity_2m_std (%)',
-        'precipitation_probability_max (%)',
         'precipitation_total (mm)',
         'wind_speed_10m_max (km/h)',
         'wind_gusts_10m_max (km/h)',
@@ -197,7 +185,8 @@ def get_daily_data(grid_points, start_date: dt, end_date: dt) -> pd.DataFrame:
         "daily": ["temperature_2m_max", "temperature_2m_min", "daylight_duration", "sunshine_duration", "precipitation_sum", "precipitation_hours", "precipitation_probability_max", "wind_speed_10m_max", "wind_gusts_10m_max", "wind_direction_10m_dominant"],
         "start_date": start_date.strftime("%Y-%m-%d"),
         "end_date": end_date.strftime("%Y-%m-%d"),
-        "timezone": "UTC"
+        "timezone": "UTC",
+        "models": "icon_seamless"
     }
 
     openmeteo = openmeteo_requests.Client()
@@ -263,7 +252,7 @@ def get_current_data(grid_points) -> str:
     params = {
         "latitude": [lat for lat, _ in grid_points],
         "longitude": [lon for _, lon in grid_points],
-        "current": ["temperature_2m", "relative_humidity_2m", "precipitation_probability", "precipitation", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "soil_temperature_0cm", "soil_moisture_0_to_1cm"],
+        "current": ["temperature_2m", "relative_humidity_2m", "precipitation", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "soil_temperature_0cm", "soil_moisture_0_to_1cm"],
         "timezone": "UTC"
     }
 
@@ -273,7 +262,6 @@ def get_current_data(grid_points) -> str:
     data = {
         "temperature_2m": [],
         "relative_humidity_2m": [],
-        "precipitation_probability": [],
         "precipitation": [],
         "wind_speed_10m": [],
         "wind_direction_10m": [],
@@ -287,13 +275,12 @@ def get_current_data(grid_points) -> str:
         current = response.Current()
         data["temperature_2m"].append(current.Variables(0).Value())
         data["relative_humidity_2m"].append(current.Variables(1).Value())
-        data["precipitation_probability"].append(current.Variables(2).Value())
-        data["precipitation"].append(current.Variables(3).Value())
-        data["wind_speed_10m"].append(current.Variables(4).Value())
-        data["wind_direction_10m"].append(current.Variables(5).Value())
-        data["wind_gusts_10m"].append(current.Variables(6).Value())
-        data["soil_temperature_0cm"].append(current.Variables(7).Value())
-        data["soil_moisture_0_to_1cm"].append(current.Variables(8).Value())
+        data["precipitation"].append(current.Variables(2).Value())
+        data["wind_speed_10m"].append(current.Variables(3).Value())
+        data["wind_direction_10m"].append(current.Variables(4).Value())
+        data["wind_gusts_10m"].append(current.Variables(5).Value())
+        data["soil_temperature_0cm"].append(current.Variables(6).Value())
+        data["soil_moisture_0_to_1cm"].append(current.Variables(7).Value())
 
     # Define aggregation mapping
     aggregated_data = {
@@ -306,7 +293,6 @@ def get_current_data(grid_points) -> str:
         "relative_humidity_2m_mean": np.mean(data["relative_humidity_2m"]),
         "relative_humidity_2m_std": np.std(data["relative_humidity_2m"]),
         # Precipitation
-        "precipitation_probability_max": np.max(data["precipitation_probability"]),
         "precipitation_total": np.sum(data["precipitation"]),
         # Wind
         "wind_speed_10m_max": np.max(data["wind_speed_10m"]),
@@ -331,8 +317,7 @@ def get_current_data(grid_points) -> str:
         f"**Humidity:** {aggregated_data['relative_humidity_2m_mean']:.1f}% "
         f"(Std Dev: {aggregated_data['relative_humidity_2m_std']:.1f}%)\n"
         
-        f"**Precipitation:** {aggregated_data['precipitation_total']:.1f} mm "
-        f"(Max Chance: {aggregated_data['precipitation_probability_max']:.1f}%)\n"
+        f"**Precipitation:** {aggregated_data['precipitation_total']:.1f} mm\n"
         
         f"**Wind:** Max: {aggregated_data['wind_speed_10m_max']:.1f} km/h with Gusts (Max): {aggregated_data['wind_gusts_10m_max']:.1f} km/h\n"
         f"**All wind measurements:**\n"
