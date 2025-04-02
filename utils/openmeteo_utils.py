@@ -54,3 +54,16 @@ def generate_grid_points(bounding_box: BoundingBox) -> list[(float, float)]:
     lons = lon_grid.flatten()
 
     return list(zip(lats, lons))
+
+def describe_dominant_wind_direction(wind_directions: list[float]) -> str:
+    threshold = 0.1
+    compass_bins = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+    bin_edges= np.arange(22.5, 360, 45)
+
+
+    bin_indices = np.digitize(np.asarray(wind_directions) % 360, bin_edges) % len(compass_bins)
+    bin_counts = np.bincount(bin_indices, minlength=len(compass_bins))
+    bin_ratios = bin_counts / np.sum(bin_counts)
+
+    significant_bins = np.where(bin_ratios >= threshold)[0]
+    return ', '.join([f"{compass_bins[i]} in {bin_ratios[i]*100:.0f}%" for i in significant_bins])

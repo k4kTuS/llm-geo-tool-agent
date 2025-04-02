@@ -11,7 +11,7 @@ from tools.input_schemas.openmeteo_schemas import OpenmeteoForecastInput
 from tools.input_schemas.base_schemas import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
-from utils.openmeteo_utils import generate_grid_points
+from utils.openmeteo_utils import generate_grid_points, describe_dominant_wind_direction
 
 OPENMETEO_URL = "https://api.open-meteo.com/v1/forecast"
 FORECAST_DAYS_MAX = 7
@@ -143,8 +143,7 @@ def get_hourly_data(grid_points, start_date: dt, end_date: dt) -> pd.DataFrame:
         # Wind
         wind_speed_10m_max = ("wind_speed_10m", "max"),
         wind_gusts_10m_max = ("wind_gusts_10m", "max"),
-        wind_direction_10m_list = ("wind_direction_10m", lambda x: [round(val, 2) for val in x]),
-        wind_speed_10m_list = ("wind_speed_10m", lambda x: [round(val, 2) for val in x]),
+        wind_direction_10m_dominant = ("wind_direction_10m", lambda x: describe_dominant_wind_direction([val for val in x])),
         # Soil Temperature
         soil_temperature_0cm_mean = ("soil_temperature_0cm", "mean"),
         soil_temperature_0cm_max = ("soil_temperature_0cm", "min"),
@@ -166,8 +165,7 @@ def get_hourly_data(grid_points, start_date: dt, end_date: dt) -> pd.DataFrame:
         'precipitation_total (mm)',
         'wind_speed_10m_max (km/h)',
         'wind_gusts_10m_max (km/h)',
-        'wind_direction_10m_measurements (°)',
-        'wind_speed_10m_measurements (km/h)',
+        'dominant_wind_direction_10m (from all measurements)',
         'soil_temperature_0cm_mean (°C)',
         'soil_temperature_0cm_max (°C)',
         'soil_temperature_0cm_min (°C)',
@@ -229,7 +227,7 @@ def get_daily_data(grid_points, start_date: dt, end_date: dt) -> pd.DataFrame:
         precipitation_probability_max = ("precipitation_probability_max", "mean"),
         wind_speed_10m_max = ("wind_speed_10m_max", "mean"),
         wind_gusts_10m_max = ("wind_gusts_10m_max", "mean"),
-        wind_direction_10m_dominant_list = ("wind_direction_10m_dominant",  lambda x: [round(val, 2) for val in x])
+        wind_direction_10m_dominant = ("wind_direction_10m_dominant", lambda x: describe_dominant_wind_direction([val for val in x])),
     ).reset_index()
 
     daily_area_summary.columns = [
@@ -243,7 +241,7 @@ def get_daily_data(grid_points, start_date: dt, end_date: dt) -> pd.DataFrame:
         'precipitation_probability_max (%)',
         'wind_speed_10m_max (km/h)',
         'wind_gusts_10m_max (km/h)',
-        'wind_direction_10m_dominant_measurements (°)'
+        'wind_direction_10m_dominant (from all measurements)',
     ]
 
     return daily_area_summary
