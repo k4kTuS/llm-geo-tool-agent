@@ -7,13 +7,9 @@ from schemas.geometry import BoundingBox
 
 class OpenmeteoForecastInput(BaseModel):
     bounding_box: Annotated[BoundingBox, InjectedState("bounding_box")] = Field(..., description="Map bounding box coordinates.")
-    date_start: str = Field(
+    forecast_days: int = Field(
         ...,
-        description=("The start date for the forecast in YYYY-MM-DD format.")
-    )
-    date_end: str = Field(
-        ...,
-        description=("The end date for the forecast in YYYY-MM-DD format.")
+        description="Number of days to forecast. The minimum is 1 and the maximum is 16 days."
     )
     forecast_type: Literal["hourly", "daily"] = Field(
         ...,
