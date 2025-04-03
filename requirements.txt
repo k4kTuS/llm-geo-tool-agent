@@ -24,3 +24,4 @@ streamlit_folium
 typing-extensions
 openmeteo_requests
 tabulate
+sentence_transformers

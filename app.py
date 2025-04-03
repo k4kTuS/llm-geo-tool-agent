@@ -9,6 +9,7 @@ from langgraph.graph.state import CompiledStateGraph
 import streamlit as st
 from streamlit_folium import st_folium
 
+from agents.agent_tool_selector import agent_tool_selector
 from agents.geo_agent import geo_agent
 from agents.comparison_geo_agent import comparison_geo_agent
 from visualizations.drawmap import DrawMap
@@ -25,6 +26,8 @@ if "inputs_disabled" not in st.session_state:
     st.session_state["inputs_disabled"] = False
 if "all_messages" not in st.session_state:
     st.session_state["all_messages"] = {}
+if "thread_id" not in st.session_state:
+    st.session_state["thread_id"] = uuid.uuid4()
 
 st.set_page_config(
     page_title="PoliRuralPlus Chat Assistant",
@@ -70,6 +73,7 @@ def show_chat_app():
 
         if st.button(label="Clear chat history", disabled=st.session_state["inputs_disabled"]):
             clear_chat_history()
+            st.session_state["thread_id"] = uuid.uuid4()
             st.toast("Chat history cleared.", icon="🧹")
 
         st.subheader("Area of interest")
@@ -107,6 +111,7 @@ def show_chat_app():
                 "run_id": run_id,
                 "configurable": {
                     "run_id": run_id, # Used for feedback, accessible from graph nodes
+                    "session_id": f"{st.session_state["user"]}-{st.session_state["thread_id"]}", # Used to group traces in langsmith
                 },
                 "metadata": {
                     "bounding_box_wkt": bbox.wkt,
@@ -120,7 +125,7 @@ def show_chat_app():
                 "hotel_site_marker": hotel_site_marker,
             }
 
-            agent: CompiledStateGraph = comparison_geo_agent
+            agent: CompiledStateGraph = agent_tool_selector
             with st.spinner("Give me a second, I am thinking..."):
                 last_message_id = 0
                 for chunk in agent.stream(
@@ -128,6 +133,8 @@ def show_chat_app():
                     config=config,
                     stream_mode="values",
                 ):
+                    if "selected_tools" in chunk:
+                        st.session_state["filtered_tools"] = chunk["selected_tools"]
                     for i in range(last_message_id, len(chunk["messages"])):
                         message = chunk["messages"][i]
                         write_message(message)

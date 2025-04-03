@@ -10,6 +10,7 @@ from typing_extensions import Annotated, TypedDict, Optional
 import streamlit as st
 
 from agents.prompts import SYSTEM_PROMPT_COMPARISON, get_current_timestamp
+from agents.tool_selector import filter_tools
 from paths import PROJECT_ROOT
 from tools import get_all_tools
 from schemas.geometry import BoundingBox, PointMarker
@@ -27,15 +28,21 @@ class AgentState(TypedDict):
         bounding_box: Bounding box instance representing a geographical area of interest.
         hotel_site_marker: Coordinates of a potential hotel site marker.
         alternative_response: Alternative model response generated without tools
+        selected_tools: List of tools that were selected by the tool selector
     """
     messages: Annotated[list[AnyMessage], add_messages]
     bounding_box: BoundingBox
     hotel_site_marker: PointMarker
     alternative_response: Optional[AIMessage]
+    selected_tools: list[str]
 
 llm = get_llm()
 
-llm_with_tools = llm.bind_tools(get_all_tools())
+def select_tools(state: AgentState):
+    last_user_message = state["messages"][-1]
+    query = last_user_message.content
+    selected_tools = filter_tools([tool.name for tool in get_all_tools()], query)
+    return {"selected_tools": selected_tools}
 
 def should_continue(state: AgentState, config: RunnableConfig):
     msgs = state["messages"]
@@ -60,6 +67,11 @@ def should_continue(state: AgentState, config: RunnableConfig):
 def call_model(state: AgentState, config: RunnableConfig):
     chat_history = get_chat_history()
     msgs = [SystemMessage(content=SYSTEM_PROMPT_COMPARISON.format(timestamp=get_current_timestamp()))] + list(chat_history.messages) + state["messages"]
+
+    selected_tools = state["selected_tools"]
+    print("Generating with selected tools:", selected_tools)
+    llm_with_tools = llm.bind_tools([tool for tool in get_all_tools() if tool.name in selected_tools])
+
     response = llm_with_tools.invoke(msgs)
     return {"messages": [response]}
 
@@ -74,12 +86,14 @@ def call_without_tools(state: AgentState, config: RunnableConfig):
 
 workflow = StateGraph(AgentState)
 
+workflow.add_node("tool_selection", select_tools)
 workflow.add_node("agent", call_model)
 workflow.add_node("tools", ToolNode(get_all_tools()))
 workflow.add_node("alternative", call_without_tools)
 
-workflow.add_edge(START, "agent")
+workflow.add_edge(START, "tool_selection")
+workflow.add_edge("tool_selection", "agent")
 workflow.add_conditional_edges("agent", should_continue, ["tools", "alternative", END])
 workflow.add_edge("tools", "agent")
 
-comparison_geo_agent = workflow.compile()
+agent_tool_selector = workflow.compile()
