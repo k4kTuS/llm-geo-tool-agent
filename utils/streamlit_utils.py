@@ -4,13 +4,12 @@ import time
 
 import streamlit as st
 
-from langchain_core.messages import AnyMessage, AIMessage, ToolMessage
+from langchain_core.messages import AnyMessage
 from langsmith import Client
 from shapely.geometry import shape
 from streamlit.components.v1 import html
 
 from utils.agent_utils import get_chat_history
-from schemas.data import DataResponse
 
 def parse_drawing_geometry(map_data: dict, drawing_type: str) -> str:
     if not map_data["all_drawings"]:
@@ -60,37 +59,7 @@ def post_ab_feedback(run_id, value, comment, context_response_first):
         correction={"context_response": "Option A" if context_response_first else "Option B"}
     )
 
-def write_ai_message(message: AIMessage):
-    ai_msg = st.chat_message("ai", avatar="🌿")
-    ai_msg.markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
-    
-    run_id = getattr(message, "run_id", None)
-    if run_id is not None:
-        ai_msg.feedback(
-            "stars",
-            key=f"{run_id}_{getattr(message, "alternative_id", None)}",
-            on_change=post_message_feedback(message, "stars"),
-            disabled=st.session_state["inputs_disabled"]
-        )
-
-def write_tool_message(message: ToolMessage):
-    tool_msg = st.chat_message("tool", avatar="🛠️")
-    with tool_msg.expander(message.name):
-        data_response = getattr(message,"artifact", None)
-        if isinstance(data_response, DataResponse) and data_response.show_data:
-            st.header(data_response.name, divider=True)
-            display_methods = {
-                "text": lambda: st.markdown(data_response.data.replace("\n", "  \n"), unsafe_allow_html=True),
-                "image": lambda: st.image(data_response.data),
-                "table": lambda: st.table(data_response.data),
-                "dataframe": lambda: st.dataframe(data_response.data, hide_index=True),
-            }
-            display_methods.get(data_response.data_type, lambda: None)()
-            st.markdown(f"<p style='font-size: 12px; color: gray;'>Source: {data_response.source}</p>", unsafe_allow_html=True)
-        else:
-            st.markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
-
-def parse_tool_calls(tool_calls):
+def print_tool_calls(tool_calls):
     texts = []
     for i, tc in enumerate(tool_calls, start=1):
         texts.append(f"**Tool Call {i}:** {tc['name']}  \n"\
@@ -98,30 +67,36 @@ def parse_tool_calls(tool_calls):
         )
     return "\n".join(texts)
 
-def write_tool_info(message: AnyMessage):
-    tool_calls = getattr(message, "tool_calls", None)
-    if tool_calls is not None and len(tool_calls) > 0:
-        gen_tools_msg = st.chat_message("tool", avatar="🛠️")
-        with gen_tools_msg.expander("Generated tool calls:"):
-            st.markdown(parse_tool_calls(tool_calls))
-    elif message.type == "tool":
-        write_tool_message(message)
-
 def write_message(message: AnyMessage):
     if message.type == "human":
         st.chat_message("human").write(message.content)
         return
+
     if message.type == "ai" and message.content != "":
-        write_ai_message(message)
+        ai_msg = st.chat_message("ai", avatar="🌿")
+        ai_msg.markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
+        
+        run_id = getattr(message, "run_id", None)
+        if run_id is not None:
+            ai_msg.feedback(
+                "stars",
+                key=f"{run_id}_{getattr(message, "alternative_id", None)}",
+                on_change=post_message_feedback(message, "stars"),
+                disabled=st.session_state["inputs_disabled"]
+            )
+
     if st.session_state["show_tool_calls"]:
-        write_tool_info(message)
+        if "tool_calls" in message.additional_kwargs:
+            gen_tools_msg = st.chat_message("tool", avatar="🛠️")
+            with gen_tools_msg.expander("Generated tool calls:"):
+                st.markdown(print_tool_calls(message.tool_calls))
+        elif message.type == "tool":
+            tool_msg = st.chat_message("tool", avatar="🛠️")
+            with tool_msg.expander(message.name):
+                st.markdown(message.content.replace("\n", "  \n"), unsafe_allow_html=True)
 
 def write_conversation():
     chat_history = get_chat_history()
-    if "filtered_tools" in st.session_state and st.session_state["show_tool_calls"]:
-        with st.expander("Filtered tools"):
-            st.write(st.session_state["filtered_tools"])
-
     for m in chat_history.messages:
         alternative_id = getattr(m, "alternative_id", None)
         if alternative_id:
