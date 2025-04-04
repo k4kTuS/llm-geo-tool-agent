@@ -22,6 +22,8 @@ load_dotenv()
 cfg = configparser.ConfigParser()
 cfg.read(f'{PROJECT_ROOT}/config.ini')
 
+if "show_tool_calls" not in st.session_state:
+    st.session_state["show_tool_calls"] = False
 if "inputs_disabled" not in st.session_state:
     st.session_state["inputs_disabled"] = False
 if "all_messages" not in st.session_state:
@@ -29,8 +31,9 @@ if "all_messages" not in st.session_state:
 if "thread_id" not in st.session_state:
     st.session_state["thread_id"] = uuid.uuid4()
 
+st.session_state["user"] = "matus"
 st.set_page_config(
-    page_title="PoliRuralPlus Chat Assistant",
+    page_title="GeoChat Assistant",
     page_icon="🌿",
     layout="wide" if "user" in st.session_state else "centered",
     initial_sidebar_state="auto",
@@ -59,25 +62,25 @@ def show_login_form():
                 st.rerun()
 
 def show_chat_app():
-    st.title("🌿 PoliRuralPlus Chat Assistant")
-
     with st.sidebar:
-        st.subheader("Chat management")
-        
-        tools_on = st.toggle(label="Show tool calls details", disabled=st.session_state["inputs_disabled"])
+        st.title("🌿 GeoChat Assistant")
 
-        if tools_on:
-            st.session_state["show_tool_calls"] = True
-        else:
-            st.session_state["show_tool_calls"] = False
+        st.header("Chat management")
+        cols = st.columns(2)
+        with cols[0]:
+            st.toggle(
+                label="Show tool calls",
+                value=False,
+                disabled=st.session_state["inputs_disabled"],
+                on_change=lambda: st.session_state.update({"show_tool_calls": not st.session_state["show_tool_calls"]})
+            )
+        with cols[1]:
+            if st.button(label="Clear history", disabled=st.session_state["inputs_disabled"]):
+                clear_chat_history()
+                st.session_state["thread_id"] = uuid.uuid4()
+                st.toast("Chat history cleared.", icon="🧹")
 
-        if st.button(label="Clear chat history", disabled=st.session_state["inputs_disabled"]):
-            clear_chat_history()
-            st.session_state["thread_id"] = uuid.uuid4()
-            st.toast("Chat history cleared.", icon="🧹")
-
-        st.subheader("Area of interest")
-
+        st.header("Area of interest")
         m = DrawMap()
         map_data = st_folium(
             m.map_,
@@ -125,7 +128,7 @@ def show_chat_app():
                 "hotel_site_marker": hotel_site_marker,
             }
 
-            agent: CompiledStateGraph = agent_tool_selector
+            agent: CompiledStateGraph = comparison_geo_agent
             with st.spinner("Give me a second, I am thinking..."):
                 last_message_id = 0
                 for chunk in agent.stream(
