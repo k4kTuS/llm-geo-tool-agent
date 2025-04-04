@@ -295,8 +295,7 @@ def get_current_data(grid_points) -> str:
         # Wind
         "wind_speed_10m_max": np.max(data["wind_speed_10m"]),
         "wind_gusts_10m_max": np.max(data["wind_gusts_10m"]),
-        "wind_speed_10m_all": data["wind_speed_10m"],
-        "wind_direction_10m_all": data["wind_direction_10m"],
+        "wind_direction_10m_dominant": describe_dominant_wind_direction(data["wind_direction_10m"]),
         # Soil Temperature
         "soil_temperature_0cm_mean": np.mean(data["soil_temperature_0cm"]),
         "soil_temperature_0cm_min": np.min(data["soil_temperature_0cm"]),
@@ -318,8 +317,8 @@ def get_current_data(grid_points) -> str:
         f"**Precipitation:** {aggregated_data['precipitation_total']:.1f} mm\n"
         
         f"**Wind:** Max: {aggregated_data['wind_speed_10m_max']:.1f} km/h with Gusts (Max): {aggregated_data['wind_gusts_10m_max']:.1f} km/h\n"
-        f"**All wind measurements:**\n"
-        f"{", ".join([f"{speed:.1f} km/h from {direction:.1f}°" for speed, direction in zip(aggregated_data['wind_speed_10m_all'], aggregated_data['wind_direction_10m_all'])])}\n"
+        f"**Dominant wind directions (from all measurements):**\n"
+        f"{aggregated_data['wind_direction_10m_dominant']}\n"
         
         f"**Soil Temperature:** Avg: {aggregated_data['soil_temperature_0cm_mean']:.1f}°C, "
         f"Min: {aggregated_data['soil_temperature_0cm_min']:.1f}°C, Max: {aggregated_data['soil_temperature_0cm_max']:.1f}°C\n"
