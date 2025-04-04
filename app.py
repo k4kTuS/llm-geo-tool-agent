@@ -20,17 +20,17 @@ from utils.agent_utils import clear_chat_history, DEFAULT_LLM, LLM_OPTIONS
 load_dotenv()
 
 if "show_tool_calls" not in st.session_state:
-    st.session_state["show_tool_calls"] = False
+    st.session_state.show_tool_calls = False
 if "inputs_disabled" not in st.session_state:
-    st.session_state["inputs_disabled"] = False
+    st.session_state.inputs_disabled = False
 if "all_messages" not in st.session_state:
-    st.session_state["all_messages"] = {}
+    st.session_state.all_messages = {}
 if "thread_id" not in st.session_state:
-    st.session_state["thread_id"] = uuid.uuid4()
+    st.session_state.thread_id = uuid.uuid4()
 if "llm_choice" not in st.session_state:
-    st.session_state["llm_choice"] = DEFAULT_LLM
+    st.session_state.llm_choice = DEFAULT_LLM
 
-st.session_state["user"] = "matus"
+st.session_state.user = "matus"
 st.set_page_config(
     page_title="GeoChat Assistant",
     page_icon="🌿",
@@ -39,7 +39,7 @@ st.set_page_config(
 )
 
 def disable_inputs():
-    st.session_state["inputs_disabled"] = True
+    st.session_state.inputs_disabled = True
 
 def show_login_form():
     st.title("Login")
@@ -52,10 +52,10 @@ def show_login_form():
         if submit_button:
             if not username_input:
                 st.warning("Please enter your username.")
-            elif password_input != st.secrets["EA_PASSWORD"]:
+            elif password_input != st.secrets.EA_PASSWORD:
                 st.error("Incorrect password. Please try again.")
             else:
-                st.session_state["user"] = username_input
+                st.session_state.user = username_input
                 st.success(f"Welcome, {username_input}! Redirecting you to chat assistant...")
                 time.sleep(1)
                 st.rerun()
@@ -68,27 +68,27 @@ def show_chat_app():
             st.toggle(
                 label="Show tool calls",
                 value=False,
-                disabled=st.session_state["inputs_disabled"],
-                on_change=lambda: st.session_state.update({"show_tool_calls": not st.session_state["show_tool_calls"]})
+                disabled=st.session_state.inputs_disabled,
+                on_change=lambda: st.session_state.update({"show_tool_calls": not st.session_state.show_tool_calls})
             )
 
             st.warning("Changing the LLM model will clear the chat history.")
             selected_llm = st.selectbox(
                 label="LLM model",
                 options=LLM_OPTIONS,
-                disabled=st.session_state["inputs_disabled"],
+                disabled=st.session_state.inputs_disabled,
             )
-            if selected_llm != st.session_state["llm_choice"]:
+            if selected_llm != st.session_state.llm_choice:
                 st.toast(f"Changed LLM model to {selected_llm}.", icon="🔄")
-                st.session_state["llm_choice"] = selected_llm
+                st.session_state.llm_choice = selected_llm
                 clear_chat_history()
-                st.session_state["thread_id"] = uuid.uuid4()
+                st.session_state.thread_id = uuid.uuid4()
                 st.toast("Chat history cleared.", icon="🧹")
 
         st.header("Chat management")
-        if st.button(label="Clear chat history", disabled=st.session_state["inputs_disabled"], use_container_width=True):
+        if st.button(label="Clear chat history", disabled=st.session_state.inputs_disabled, use_container_width=True):
             clear_chat_history()
-            st.session_state["thread_id"] = uuid.uuid4()
+            st.session_state.thread_id = uuid.uuid4()
             st.toast("Chat history cleared.", icon="🧹")
 
         st.header("Select an area of interest")
@@ -102,35 +102,35 @@ def show_chat_app():
             returned_objects=["all_drawings"],
         )
         
-        st.session_state["selected_area_wkt"] = parse_drawing_geometry(map_data, "Polygon")
-        st.session_state["hotel_site_wkt"] = parse_drawing_geometry(map_data, "Point")
+        st.session_state.selected_area_wkt = parse_drawing_geometry(map_data, "Polygon")
+        st.session_state.hotel_site_wkt = parse_drawing_geometry(map_data, "Point")
 
     with st.expander("Click to select some example questions", icon="🔍"):
         examples = [line.rstrip() for line in open('resources/example_questions.txt')]
-        selected = st.pills(label="What do you want to talk about?", options=examples, disabled=st.session_state["inputs_disabled"])
+        selected = st.pills(label="What do you want to talk about?", options=examples, disabled=st.session_state.inputs_disabled)
         add_pill_to_chat_input(selected)
 
     write_conversation()
-    if prompt := st.chat_input(placeholder="Ask me anything...", disabled=st.session_state["inputs_disabled"], on_submit=disable_inputs):
-        if st.session_state["selected_area_wkt"] is None:
+    if prompt := st.chat_input(placeholder="Ask me anything...", disabled=st.session_state.inputs_disabled, on_submit=disable_inputs):
+        if st.session_state.selected_area_wkt is None:
             st.toast("Please draw a rectangle on the map to select the area of interest.", icon="🗺️")
             st.toast("You must have one area of interest selected at a time.", icon="🗺️")
             time.sleep(2)
         else:
-            bbox = BoundingBox(wkt=st.session_state["selected_area_wkt"])
-            hotel_site_marker = PointMarker(wkt=st.session_state["hotel_site_wkt"]) if st.session_state["hotel_site_wkt"] else None
+            bbox = BoundingBox(wkt=st.session_state.selected_area_wkt)
+            hotel_site_marker = PointMarker(wkt=st.session_state.hotel_site_wkt) if st.session_state.hotel_site_wkt else None
             
             run_id = uuid.uuid4() # For langsmith
             config = {
                 "run_id": run_id,
                 "configurable": {
                     "run_id": run_id, # Used for feedback, accessible from graph nodes
-                    "session_id": f"{st.session_state["user"]}-{st.session_state["thread_id"]}", # Used to group traces in langsmith
-                    "model_name": st.session_state["llm_choice"]
+                    "session_id": f"{st.session_state.user}-{st.session_state.thread_id}", # Used to group traces in langsmith
+                    "model_name": st.session_state.llm_choice
                 },
                 "metadata": {
                     "bounding_box_wkt": bbox.wkt,
-                    "user": st.session_state["user"],
+                    "user": st.session_state.user,
                     "hotel_site_marker_wkt": hotel_site_marker.wkt if hotel_site_marker else None,
                 },
             }
@@ -149,13 +149,13 @@ def show_chat_app():
                     stream_mode="values",
                 ):
                     if "selected_tools" in chunk:
-                        st.session_state["filtered_tools"] = chunk["selected_tools"]
+                        st.session_state.filtered_tools = chunk["selected_tools"]
                     for i in range(last_message_id, len(chunk["messages"])):
                         message = chunk["messages"][i]
                         write_message(message)
                     last_message_id = len(chunk["messages"])
                 
-        st.session_state["inputs_disabled"] = False
+        st.session_state.inputs_disabled = False
         st.rerun()
 
 if "user" not in st.session_state:

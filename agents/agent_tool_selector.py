@@ -47,13 +47,13 @@ def should_continue(state: AgentState, config: RunnableConfig):
     get_chat_history().add_messages(msgs)
     last_message.run_id = config["configurable"]["run_id"]
     for m in msgs:
-        st.session_state["all_messages"][m.id] = m
+        st.session_state.all_messages[m.id] = m
     alternative = state.get("alternative_response", None)
     if  alternative is not None:
         last_message.alternative_id = alternative.id
         alternative.alternative_id = last_message.id
         alternative.run_id = config["configurable"]["run_id"]
-        st.session_state["all_messages"][alternative.id] = alternative
+        st.session_state.all_messages[alternative.id] = alternative
     return END
 
 def call_model(state: AgentState, config: RunnableConfig):

@@ -70,7 +70,7 @@ def write_ai_message(message: AIMessage):
             "stars",
             key=f"{run_id}_{getattr(message, "alternative_id", None)}",
             on_change=post_message_feedback(message, "stars"),
-            disabled=st.session_state["inputs_disabled"]
+            disabled=st.session_state.inputs_disabled
         )
 
 def write_tool_message(message: ToolMessage):
@@ -113,19 +113,19 @@ def write_message(message: AnyMessage):
         return
     if message.type == "ai" and message.content != "":
         write_ai_message(message)
-    if st.session_state["show_tool_calls"]:
+    if st.session_state.show_tool_calls:
         write_tool_info(message)
 
 def write_conversation():
     chat_history = get_chat_history()
-    if "filtered_tools" in st.session_state and st.session_state["show_tool_calls"]:
+    if "filtered_tools" in st.session_state and st.session_state.show_tool_calls:
         with st.expander("Filtered tools"):
-            st.write(st.session_state["filtered_tools"])
+            st.write(st.session_state.filtered_tools)
 
     for m in chat_history.messages:
         alternative_id = getattr(m, "alternative_id", None)
         if alternative_id:
-            alt_msg = st.session_state["all_messages"][alternative_id]
+            alt_msg = st.session_state.all_messages[alternative_id]
             write_comparison_messages(m, alt_msg)
         else:
             write_message(m)
@@ -169,7 +169,7 @@ def write_comparison_messages(main_msg, alt_msg):
                 "stars",
                 key=f"{main_msg.run_id}_{getattr(main_msg, 'alternative_id', None)}",
                 on_change=post_message_feedback(main_msg, "stars", correction={"original_position": "Option A" if main_msg.id == msg_A.id else "Option B"}),
-                disabled=st.session_state["inputs_disabled"]
+                disabled=st.session_state.inputs_disabled
             )
         else:
             col1, col2 = st.columns(2)

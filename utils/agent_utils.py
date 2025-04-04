@@ -17,12 +17,12 @@ DEFAULT_LLM = 'gpt-4o-mini'
 # TODO - Add session id key for history, if we will store all the conversations during a session
 def get_chat_history() -> InMemoryChatMessageHistory:
     if f'chat_history' not in st.session_state:
-        st.session_state[f'chat_history'] = InMemoryChatMessageHistory()
-    return st.session_state[f'chat_history']
+        st.session_state.chat_history = InMemoryChatMessageHistory()
+    return st.session_state.chat_history
 
 def clear_chat_history():
-    st.session_state[f'chat_history'] = InMemoryChatMessageHistory()
-    st.session_state["all_messages"] = {}
+    st.session_state.chat_history = InMemoryChatMessageHistory()
+    st.session_state.all_messages = {}
 
 def get_llm(model_name: str) -> BaseChatModel:
     """
