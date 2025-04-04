@@ -1,6 +1,3 @@
-import configparser
-from datetime import datetime
-
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, END, StateGraph
@@ -14,9 +11,6 @@ from paths import PROJECT_ROOT
 from tools import get_all_tools
 from schemas.geometry import BoundingBox, PointMarker
 from utils.agent_utils import get_chat_history, get_llm
-
-cfg = configparser.ConfigParser()
-cfg.read(f'{PROJECT_ROOT}/config.ini')
 
 class AgentState(TypedDict):
     """
@@ -32,10 +26,6 @@ class AgentState(TypedDict):
     bounding_box: BoundingBox
     hotel_site_marker: PointMarker
     alternative_response: Optional[AIMessage]
-
-llm = get_llm()
-
-llm_with_tools = llm.bind_tools(get_all_tools())
 
 def should_continue(state: AgentState, config: RunnableConfig):
     msgs = state["messages"]
@@ -58,12 +48,17 @@ def should_continue(state: AgentState, config: RunnableConfig):
     return END
 
 def call_model(state: AgentState, config: RunnableConfig):
+    llm = get_llm(config["configurable"]["model_name"])
+    llm_with_tools = llm.bind_tools(get_all_tools())
+
     chat_history = get_chat_history()
     msgs = [SystemMessage(content=SYSTEM_PROMPT_COMPARISON.format(timestamp=get_current_timestamp()))] + list(chat_history.messages) + state["messages"]
     response = llm_with_tools.invoke(msgs)
     return {"messages": [response]}
 
 def call_without_tools(state: AgentState, config: RunnableConfig):
+    llm = get_llm(config["configurable"]["model_name"])
+
     bbox_text = f"The bounding box is defined by the following coordinates (lat1, lon1, lat2, lon2):\n" \
                 f"{state['bounding_box'].to_string_latlon()}\n"
     user_msg = HumanMessage(content=bbox_text + state["messages"][0].content)

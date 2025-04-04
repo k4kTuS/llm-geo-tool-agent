@@ -1,4 +1,3 @@
-import configparser
 import time
 import uuid
 
@@ -16,11 +15,9 @@ from visualizations.drawmap import DrawMap
 from paths import PROJECT_ROOT
 from utils.streamlit_utils import *
 from schemas.geometry import BoundingBox, PointMarker
-from utils.agent_utils import clear_chat_history
+from utils.agent_utils import clear_chat_history, DEFAULT_LLM, LLM_OPTIONS
 
 load_dotenv()
-cfg = configparser.ConfigParser()
-cfg.read(f'{PROJECT_ROOT}/config.ini')
 
 if "show_tool_calls" not in st.session_state:
     st.session_state["show_tool_calls"] = False
@@ -30,6 +27,8 @@ if "all_messages" not in st.session_state:
     st.session_state["all_messages"] = {}
 if "thread_id" not in st.session_state:
     st.session_state["thread_id"] = uuid.uuid4()
+if "llm_choice" not in st.session_state:
+    st.session_state["llm_choice"] = DEFAULT_LLM
 
 st.session_state["user"] = "matus"
 st.set_page_config(
@@ -64,23 +63,35 @@ def show_login_form():
 def show_chat_app():
     with st.sidebar:
         st.title("🌿 GeoChat Assistant")
-
-        st.header("Chat management")
-        cols = st.columns(2)
-        with cols[0]:
+        
+        with st.popover("Settings", icon="⚙️", use_container_width=True):
             st.toggle(
                 label="Show tool calls",
                 value=False,
                 disabled=st.session_state["inputs_disabled"],
                 on_change=lambda: st.session_state.update({"show_tool_calls": not st.session_state["show_tool_calls"]})
             )
-        with cols[1]:
-            if st.button(label="Clear history", disabled=st.session_state["inputs_disabled"]):
+
+            st.warning("Changing the LLM model will clear the chat history.")
+            selected_llm = st.selectbox(
+                label="LLM model",
+                options=LLM_OPTIONS,
+                disabled=st.session_state["inputs_disabled"],
+            )
+            if selected_llm != st.session_state["llm_choice"]:
+                st.toast(f"Changed LLM model to {selected_llm}.", icon="🔄")
+                st.session_state["llm_choice"] = selected_llm
                 clear_chat_history()
                 st.session_state["thread_id"] = uuid.uuid4()
                 st.toast("Chat history cleared.", icon="🧹")
 
-        st.header("Area of interest")
+        st.header("Chat management")
+        if st.button(label="Clear chat history", disabled=st.session_state["inputs_disabled"], use_container_width=True):
+            clear_chat_history()
+            st.session_state["thread_id"] = uuid.uuid4()
+            st.toast("Chat history cleared.", icon="🧹")
+
+        st.header("Select an area of interest")
         m = DrawMap()
         map_data = st_folium(
             m.map_,
@@ -115,6 +126,7 @@ def show_chat_app():
                 "configurable": {
                     "run_id": run_id, # Used for feedback, accessible from graph nodes
                     "session_id": f"{st.session_state["user"]}-{st.session_state["thread_id"]}", # Used to group traces in langsmith
+                    "model_name": st.session_state["llm_choice"]
                 },
                 "metadata": {
                     "bounding_box_wkt": bbox.wkt,

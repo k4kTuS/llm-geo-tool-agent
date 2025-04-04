@@ -1,6 +1,3 @@
-import configparser
-from datetime import datetime
-
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, END, StateGraph
@@ -15,9 +12,6 @@ from tools import get_all_tools
 from schemas.geometry import BoundingBox, PointMarker
 from utils.agent_utils import get_chat_history, get_llm
 
-cfg = configparser.ConfigParser()
-cfg.read(f'{PROJECT_ROOT}/config.ini')
-
 class AgentState(TypedDict):
     """
     Represents the state of our graph.
@@ -31,10 +25,6 @@ class AgentState(TypedDict):
     bounding_box: BoundingBox
     hotel_site_marker: PointMarker
 
-llm = get_llm()
-
-llm_with_tools = llm.bind_tools(get_all_tools())
-
 def should_continue(state: AgentState, config: RunnableConfig):
     msgs = state["messages"]
     last_message = msgs[-1]
@@ -46,6 +36,9 @@ def should_continue(state: AgentState, config: RunnableConfig):
     return END
 
 def call_model(state: AgentState, config: RunnableConfig):
+    llm = get_llm(config["configurable"]["model_name"])
+    llm_with_tools = llm.bind_tools(get_all_tools())
+
     chat_history = get_chat_history()
     msgs = [SystemMessage(content=SYSTEM_PROMP_GEO.format(timestamp=get_current_timestamp()))] + list(chat_history.messages) + state["messages"]
     response = llm_with_tools.invoke(msgs)
