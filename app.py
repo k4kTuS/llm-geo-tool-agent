@@ -95,7 +95,7 @@ def show_chat_app():
         m = DrawMap()
         map_data = st_folium(
             m.map_,
-            width=400,
+            use_container_width=True,
             height=500,
             key="map1",
             center=[49.75, 13.39],
