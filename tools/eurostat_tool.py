@@ -17,8 +17,14 @@ class EurostatPopulationTool(BaseTool):
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
 
     def _run(self, bounding_box: BoundingBox):
-        map_data = get_map_data(bounding_box, "EUROSTAT_2021", {"layer": "total_population_eurostat_griddata_2021"})
+        map_data = get_map_data(bounding_box, "EUROSTAT_2021", {"layers": "total_population_eurostat_griddata_2021"})
         image = Image.open(BytesIO(map_data))
         total_population = int(np.sum(np.unique(np.array(image))))
+
+        map_data = get_map_data(bounding_box, "EUROSTAT_2021", {"layers": "employed_population_eurostat_griddata_2021"})
+        image = Image.open(BytesIO(map_data))
+        employed_population = int(np.sum(np.unique(np.array(image))))
         
-        return f"Eurostat - Total population: {total_population}"
+        return "## Eurostat data:\n"\
+            + f"- Total population: {total_population}\n"\
+            + f"- Employed population: {employed_population}"
