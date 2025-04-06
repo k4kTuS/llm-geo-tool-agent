@@ -1,15 +1,11 @@
 from io import BytesIO
 
-import geopandas as gpd
-import json
 import numpy as np
 import requests
 import pandas as pd
 from PIL import Image
 from scipy.spatial import KDTree
-import streamlit as st
 
-from paths import DATA_DIR
 from schemas.geometry import BoundingBox, PointMarker
 from utils.map_service_utils import *
 
@@ -75,38 +71,7 @@ def get_spoi_data(bounding_box: BoundingBox):
     )
     return response.json()
 
-# Tourism
-def get_region_tourism_data(bounding_box: BoundingBox):
-    """
-    Currently works only with Czech Republic region data.
-    """
-    gdf = gpd.GeoDataFrame.from_file(f'{DATA_DIR}/visitors.geojson')
-    df = pd.read_csv(f'{DATA_DIR}/ciselnik_obci.csv', index_col='chodnota')
-    regions = gdf[gdf.intersects(bounding_box.geom)]
-    # No regions found
-    if regions.empty:
-        return None, None
-    # Use only one region at first
-    regions.loc[:, 'fid'] = regions.loc[:, 'fid'].astype(int)
-    first_region = regions.iloc[0]
-    props = json.loads(first_region.properties)
-    name = df.loc[first_region.fid].text
-
-    data = dict(sorted((k,v) for k,v in props.items() if is_number(v['all_guests'])))
-    # No data for given region
-    if len(data) == 0:
-        return None, name
-
-    return data, name
-
 # Other helpers
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
-
 def get_map(bounding_box: BoundingBox, endpoint, alt_params={}):
     api_setup = map_config[endpoint]
     response = requests.get(
