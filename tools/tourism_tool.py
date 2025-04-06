@@ -20,7 +20,11 @@ NO_DATA_STRINGS = ['-', '.', 'x', 'i.d.']
 
 class TourismTool(BaseTool):
     name: str = "get_tourism_data"
-    description: str = "Get historical tourism data for municipalities in an area of interest. Data is available only for Czech Republic"
+    description: str = (
+        "Provides historical tourism data for the bounding box. "
+        "Data is available for the Czech Republic only. "
+        "The result is a summary of yearly total tourist numbers for intersecting municipalities from 2012 to 2023."
+    )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
     response_format: str = "content_and_artifact"
 

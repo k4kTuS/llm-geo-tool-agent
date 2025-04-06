@@ -13,7 +13,11 @@ from utils.map_service_utils import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mappi
 
 class LandCoverTool(BaseTool):
     name: str = "land_cover_tool"
-    description: str = "Get processed land cover information for a given area."
+    description: str = (
+        "Provides processed land cover data for the bounding box. "
+        "Zone types are based on physical surface characteristics."
+        "The result is a summary of land cover types and their respective areas."
+    )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
 
     def _run(self, bounding_box: BoundingBox):
@@ -48,7 +52,11 @@ class LandCoverTool(BaseTool):
 
 class LandUseTool(BaseTool):
     name: str = "land_use_tool"
-    description: str = "Get processed land use information for a given area."
+    description: str = (
+        "Provides processed land use data for the bounding box. "
+        "Zone types are based on human activities and planning. "
+        "The result is a summary of land use types and their respective areas."
+    )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
 
     def _run(self, bounding_box: BoundingBox):

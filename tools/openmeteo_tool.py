@@ -19,7 +19,7 @@ FORECAST_DAYS_MAX = 7
 class CurrentWeatherTool(BaseTool):
     name: str = "current_weather"
     description: str = (
-        "A tool for retrieving current weather data based on a given bounding box."
+        "Retrieves current weather data for the bounding box. "
         "It supports the following weather variables: temperature, humidity, precipitation, wind speed, gusts and direction, soil temperature and moisture"
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
@@ -32,10 +32,10 @@ class CurrentWeatherTool(BaseTool):
 class WeatherForecastTool(BaseTool):
     name: str = "weather_forecast"
     description: str = (
-        "A tool for retrieving weather forecast data based on a given bounding box. "
+        "Retrieves weather forecast data for the bounding box. "
         f"It supports both hourly and daily forecasts for up to {FORECAST_DAYS_MAX} days. "
         "Does not support historical data. "
-        "\nReturns the following weather variables: "
+        "\nCan provide the the following weather variables: "
         "\nhourly data: temperature, humidity, precipitation, wind speed, gusts and direction, soil temperature and moisture"
         "\ndaily data: max and min temperature, daylight and sunshine duration, precipitation and precipitation hours, wind speed, gusts and dominnat direction"
     )

@@ -10,7 +10,7 @@ from utils.tool_utils import get_spoi_data
 
 class SpoiTool(BaseTool):
     name: str = "get_smart_points_of_interest"
-    description: str = "Get processed data about points of interest in the selected area."
+    description: str = "Provides processed data about points of interest for the bounding box."
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
 
     def _run(self, bounding_box: BoundingBox):

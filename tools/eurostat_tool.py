@@ -10,7 +10,7 @@ from utils.tool_utils import get_map
 
 class EurostatPopulationTool(BaseTool):
     name: str = "get_eurostat_population_data"
-    description: str = "Get processed eurostat data about total population."
+    description: str = "Provides processed population data from eurostat for the bounding box."
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
 
     def _run(self, bounding_box: BoundingBox):
