@@ -17,22 +17,12 @@ map_config={
         {'wms_root_url':'https://olu.lesprojekt.cz/cgi-bin/mapserv', 
         'data':{'map':'/data/maps/olu_europe.map', 'service':'WMS', 'version':'1.3.0', 'request':'GetMap', 'bbox':'49.3,12.7,49.4,12.8', 'crs':'EPSG:4326', 'width':'1562', 'height':'680', 'layers':'olu_obj_lu', 'styles':'', 'format':'png' }, 
         'alternatives':{'layers':['olu_obj_lu', 'olu_obj_lc']}
-        }, 
-    'OLU_CZ':
-        {'wms_root_url':'https://olu.lesprojekt.cz/cgi-bin/mapserv', 
-        'data':{'map':'/data/maps/olu_europe.map', 'service':'WMS', 'version':'1.3.0', 'request':'GetMap', 'bbox':'49.3,12.7,49.4,12.8', 'crs':'EPSG:4326', 'width':'3000', 'height':'3000', 'layers':'olu_bbox_ts', 'styles':'', 'format':'png' }, 
-        'alternatives':{'TIME':[datetime.date(i,12,31).strftime('%Y-%m-%d') for i in range(2015,2024)]}
-        }, 
+        },
     'EUROSTAT_2021':
         {'wms_root_url':'https://olu.lesprojekt.cz/cgi-bin/mapserv', 
         'data':{'map':'/data/maps/thematic_maps.map', 'service':'WMS', 'version':'1.3.0', 'request':'GetMap', 'bbox':'49.3,12.7,49.4,12.8', 'crs':'EPSG:4326', 'width':'1562', 'height':'680', 'layers':'total_population_eurostat_griddata_2021', 'styles':'', 'format':'gtiff' }, 
         'alternatives':{'layers':['total_population_eurostat_griddata_2021', 'employed_population_eurostat_griddata_2021']}
         }, 
-    'DEM_color':
-        {'wms_root_url':'https://gis.lesprojekt.cz/cgi-bin/mapserv', 
-        'data':{'map':'/home/dima/maps/foodie/dem.map', 'service':'WMS', 'version':'1.3.0', 'request':'GetMap', 'bbox':'49.3,12.7,49.4,12.8', 'crs':'EPSG:4326', 'width':'1562', 'height':'680', 'layers':'DEM', 'styles':'', 'format':'png' }, 
-        'alternatives':{}
-        },
     'DEM_MASL':
         {'wms_root_url':'https://gis.lesprojekt.cz/cgi-bin/mapserv', 
         'data':{'map':'/home/dima/maps/foodie/dem.map', 'service':'WMS', 'version':'1.3.0', 'request':'GetMap', 'bbox':'49.3,12.7,49.4,12.8', 'crs':'EPSG:4326', 'width':'1562', 'height':'680', 'layers':'DEM_ORIG', 'styles':'', 'format':'gtiff' }, 
