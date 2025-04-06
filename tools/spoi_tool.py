@@ -1,11 +1,12 @@
 from typing import Optional, Type
 
+import requests
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from tools.input_schemas.base_schemas import BaseGeomInput
 from schemas.geometry import BoundingBox
-from utils.tool_utils import get_spoi_data
+from utils.map_service_utils import wfs_config
 
 
 class SpoiTool(BaseTool):
@@ -17,3 +18,12 @@ class SpoiTool(BaseTool):
         spoi_data = get_spoi_data(bounding_box)
         return f"Number of points of interest: {len(spoi_data['features'])}"\
             + "\n\n" + "\n".join([f"{poi['properties']['cat'][str.rfind(poi['properties']['cat'], '#')+1:]} - {poi['properties']['label']}" for poi in spoi_data['features']])
+    
+def get_spoi_data(bounding_box: BoundingBox):
+    # SPOI endpoint expects lon1, lat1, lon2, lat2
+    response = requests.get(
+        wfs_config["SPOI"]["wfs_root_url"],
+        params={**wfs_config["SPOI"]["data"], **{"bbox": bounding_box.to_string_lonlat()}},
+        stream=True
+    )
+    return response.json()

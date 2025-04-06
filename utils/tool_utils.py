@@ -1,26 +1,10 @@
-from io import BytesIO
-
 import numpy as np
 import requests
-import pandas as pd
-from PIL import Image
 from scipy.spatial import KDTree
 
 from schemas.geometry import BoundingBox, PointMarker
 from utils.map_service_utils import *
 
-# DEM
-def count_elevation_zones(elevation_array):
-    zone_counts = {name: 0 for _, _, name in elevation_ranges}  # Initialize counts
-
-    for min_val, max_val, zone_name in elevation_ranges:
-        # Count values in the current range
-        count = np.sum((elevation_array >= min_val) & (elevation_array < max_val))
-        zone_counts[zone_name] += count
-
-    return zone_counts
-
-# OLU
 def get_color_counts(image, rgb_mapping, n_colors=None):
     pixels = np.array(image)
     pixels = pixels.reshape(-1, 3)
@@ -61,22 +45,11 @@ def find_square_for_marker(square_list, marker_point: PointMarker):
             return square
     return None
 
-# SPOI
-def get_spoi_data(bounding_box: BoundingBox):
-    # SPOI endpoint expects lon1, lat1, lon2, lat2
-    response = requests.get(
-        wfs_config["SPOI"]["wfs_root_url"],
-        params={**wfs_config["SPOI"]["data"], **{"bbox": bounding_box.to_string_lonlat()}},
-        stream=True
-    )
-    return response.json()
-
-# Other helpers
-def get_map(bounding_box: BoundingBox, endpoint, alt_params={}):
+def get_map_data(bounding_box: BoundingBox, endpoint, alt_params={}):
     api_setup = map_config[endpoint]
     response = requests.get(
         api_setup["wms_root_url"],
         params={**api_setup["data"], **{"bbox": bounding_box.to_string_latlon(), "height":"1500", "width":"1500"}, **alt_params},
         stream=True
     )
-    return Image.open(BytesIO(response.content))
+    return response.content

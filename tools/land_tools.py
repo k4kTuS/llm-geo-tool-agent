@@ -1,14 +1,16 @@
+from io import BytesIO
 from typing import Optional, Type
 
 import numpy as np
 from langchain_core.tools import BaseTool
+from PIL import Image
 from pydantic import BaseModel
 from typing import Optional, Type
 
 from tools.input_schemas.base_schemas import BaseGeomInput
 from schemas.geometry import BoundingBox
-from utils.tool_utils import get_map, get_color_counts, count_elevation_zones
-from utils.map_service_utils import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping
+from utils.tool_utils import get_map_data, get_color_counts
+from utils.map_service_utils import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_ranges
 
 
 class LandCoverTool(BaseTool):
@@ -21,7 +23,8 @@ class LandCoverTool(BaseTool):
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
 
     def _run(self, bounding_box: BoundingBox):
-        image = get_map(bounding_box, "OLU_EU", {"layers": "olu_obj_lc"})
+        map_data = get_map_data(bounding_box, "OLU_EU", {"layers": "olu_obj_lc"})
+        image = Image.open(BytesIO(map_data))
         
         n_pixels = len(image.getdata())
         rgb_counts = get_color_counts(image, LC_rgb_mapping)
@@ -60,7 +63,8 @@ class LandUseTool(BaseTool):
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
 
     def _run(self, bounding_box: BoundingBox):
-        image = get_map(bounding_box, "OLU_EU")
+        map_data = get_map_data(bounding_box, "OLU_EU")
+        image = Image.open(BytesIO(map_data))
         
         n_pixels = len(image.getdata())
         rgb_counts = get_color_counts(image, LU_rgb_mapping)
@@ -95,7 +99,8 @@ class ElevationTool(BaseTool):
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
 
     def _run(self, bounding_box: BoundingBox):
-        image = get_map(bounding_box, "DEM_MASL")
+        map_data = get_map_data(bounding_box, "DEM_MASL")
+        image = Image.open(BytesIO(map_data))
         elevations = np.array(image)
         zones_data = count_elevation_zones(elevations)
         
@@ -108,3 +113,13 @@ class ElevationTool(BaseTool):
             + f"Min elevation: {elevations.min()} meters\n\n"\
             + "Elevation zones:\n"\
             + "\n".join([f"{k}: {v * bbox_area:.2f} km squared ({v*100:.2f}%)" for k, v in zones_ratios.items() if v != 0])
+
+def count_elevation_zones(elevation_array):
+    zone_counts = {name: 0 for _, _, name in elevation_ranges}  # Initialize counts
+
+    for min_val, max_val, zone_name in elevation_ranges:
+        # Count values in the current range
+        count = np.sum((elevation_array >= min_val) & (elevation_array < max_val))
+        zone_counts[zone_name] += count
+
+    return zone_counts
