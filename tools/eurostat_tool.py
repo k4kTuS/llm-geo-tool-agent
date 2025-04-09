@@ -5,7 +5,6 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 from PIL import Image
 from pyproj import Transformer
-from pyproj.enums import TransformDirection
 from shapely.geometry import box
 from typing import Optional, Type
 
@@ -35,15 +34,17 @@ class EurostatPopulationTool(BaseTool):
             "EUROSTAT_2021",
             {
                 "layers": "total_population_eurostat_griddata_2021",
+                "crs": "EPSG:3035",
                 "width": dimensions[0],
                 "height": dimensions[1]
             }
         )
         employed_data = get_map_data(
-            bounding_box,
+            bbox_snapped,
             "EUROSTAT_2021",
             {
                 "layers": "employed_population_eurostat_griddata_2021",
+                "crs": "EPSG:3035",
                 "width": dimensions[0],
                 "height": dimensions[1]
             }
@@ -51,9 +52,11 @@ class EurostatPopulationTool(BaseTool):
         # Calculate total and employed population
         arr_total = np.array(Image.open(BytesIO(total_data)))
         arr_employed = np.array(Image.open(BytesIO(employed_data)))
+        total_sum = int(np.sum(arr_total))
+        employed_sum = int(np.sum(arr_employed))
         return "## Eurostat data:\n"\
-            + f"- Total population: {int(np.sum(arr_total))}\n"\
-            + f"- Employed population: {int(np.sum(arr_employed))}"
+            + f"- Total population: {total_sum:,}\n"\
+            + f"- Employed population: {employed_sum:,} ({(employed_sum / total_sum):.2%})\n"\
     
 def transform_snap_bbox(bbox: BoundingBox, source_crs: str, target_crs: str, x_grid_size: int, y_grid_size: int):
     """
@@ -62,16 +65,14 @@ def transform_snap_bbox(bbox: BoundingBox, source_crs: str, target_crs: str, x_g
     the number of grid cells in each direction inside the bounding box.
     """
     transformer = Transformer.from_crs(source_crs, target_crs, always_xy=True)
-    bounds_target = transformer.transform_bounds(*bbox.bounds_lonlat(), direction=TransformDirection.FORWARD)
+    bounds_target = transformer.transform_bounds(*bbox.bounds_lonlat())
     bounds_target_snapped = (
         np.floor(bounds_target[0] / x_grid_size) * x_grid_size,
         np.floor(bounds_target[1] / y_grid_size) * y_grid_size,
         np.ceil(bounds_target[2] / x_grid_size) * x_grid_size,
         np.ceil(bounds_target[3] / y_grid_size) * y_grid_size
     )
-    bounds_source_snapped = transformer.transform_bounds(*bounds_target_snapped, direction=TransformDirection.INVERSE)
-    bbox_snapped = BoundingBox(wkt=box(*bounds_source_snapped).wkt)
-
+    bbox_snapped = BoundingBox(wkt=box(*bounds_target_snapped).wkt)
     x_grid_cells = int((bounds_target_snapped[2] - bounds_target_snapped[0]) / x_grid_size)
     y_grid_cells = int((bounds_target_snapped[3] - bounds_target_snapped[1]) / y_grid_size)
 
