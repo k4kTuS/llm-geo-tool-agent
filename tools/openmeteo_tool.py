@@ -37,7 +37,7 @@ class WeatherForecastTool(BaseTool):
         "Does not support historical data. "
         "\nCan provide the the following weather variables: "
         "\nhourly data: temperature, humidity, precipitation, wind speed, gusts and direction, soil temperature and moisture"
-        "\ndaily data: max and min temperature, daylight and sunshine duration, precipitation and precipitation hours, wind speed, gusts and dominnat direction"
+        "\ndaily data: max and min temperature, daylight and sunshine duration, precipitation and precipitation hours, wind speed, gusts and dominant direction"
     )
     args_schema: Optional[Type[BaseModel]] = OpenmeteoForecastInput
     response_format: str = "content_and_artifact"
