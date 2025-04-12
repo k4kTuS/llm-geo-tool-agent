@@ -1,1 +1,1 @@
-from agents.agents import get_agent
+from agents.agents import get_agent, BaseAgent

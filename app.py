@@ -2,15 +2,11 @@ import time
 import uuid
 
 from dotenv import load_dotenv
-from langchain import callbacks
-from langchain_core.messages import HumanMessage
-from langgraph.graph.state import CompiledStateGraph
 import streamlit as st
 from streamlit_folium import st_folium
 
-from agents import get_agent
+from agents import get_agent, BaseAgent
 from visualizations.drawmap import DrawMap
-from paths import PROJECT_ROOT
 from utils.streamlit_utils import (
     add_pill_to_chat_input,
     initialize_session_state,
@@ -19,7 +15,7 @@ from utils.streamlit_utils import (
     write_message
 )
 from schemas.geometry import BoundingBox, PointMarker
-from utils.agent_utils import clear_chat_history, DEFAULT_LLM, LLM_OPTIONS
+from utils.agent_utils import clear_chat_history, LLM_OPTIONS
 
 load_dotenv()
 initialize_session_state()
@@ -128,27 +124,20 @@ def show_chat_app():
                     "hotel_site_marker_wkt": hotel_site_marker.wkt if hotel_site_marker else None,
                 },
             }
-            input = {
-                "messages": [HumanMessage(content=prompt)],
-                "bounding_box": bbox,
-                "hotel_site_marker": hotel_site_marker,
-            }
 
-            agent: CompiledStateGraph = get_agent(name="geo")
+            agent: BaseAgent = get_agent(name="comparison_geo")
             with st.spinner("Give me a second, I am thinking..."):
                 last_message_id = 0
-                for chunk in agent.stream(
-                    input=input,
-                    config=config,
-                    stream_mode="values",
-                ):
+                state = None
+                for chunk in agent.run(prompt, bbox, hotel_site_marker, config):
                     if "selected_tools" in chunk:
                         st.session_state.filtered_tools = chunk["selected_tools"]
                     for i in range(last_message_id, len(chunk["messages"])):
                         message = chunk["messages"][i]
                         write_message(message)
                     last_message_id = len(chunk["messages"])
-                
+                    state = chunk
+                agent.store_run_details(state, config)
         st.session_state.inputs_disabled = False
         st.rerun()
 

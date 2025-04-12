@@ -24,8 +24,6 @@ def initialize_session_state():
         st.session_state.thread_id = uuid.uuid4()
     if "llm_choice" not in st.session_state:
         st.session_state.llm_choice = DEFAULT_LLM
-    if "chats" not in st.session_state:
-        st.session_state.chats = []
 
 def parse_drawing_geometry(map_data: dict, drawing_type: str) -> str:
     if not map_data["all_drawings"]:
@@ -252,8 +250,13 @@ def choose_preferred_message(main_msg, alt_msg, preferred_option):
 
 # TODO - preserve original message ids and other metadata after content swap?
 def swap_preferred_message(main_msg, alt_msg):
-    chat_history = get_chat_history()
+    chat_history = get_chat_history(alternative=False)
+    chat_alt_history = get_chat_history(alternative=True)
+
     for i, m in enumerate(chat_history.messages):
         if m.id == main_msg.id:
             chat_history.messages[i] = alt_msg
+    for i, m in enumerate(chat_alt_history.messages):
+        if m.id == alt_msg.id:
+            chat_alt_history.messages[i] = main_msg
     

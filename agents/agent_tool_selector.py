@@ -4,14 +4,13 @@ from langgraph.graph import START, END, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from typing_extensions import Annotated, TypedDict, Optional
-import streamlit as st
 
 from agents.prompts import SYSTEM_PROMPT_COMPARISON, get_current_timestamp
 from agents.tool_selector import filter_tools
 from paths import PROJECT_ROOT
 from tools import get_all_tools
 from schemas.geometry import BoundingBox, PointMarker
-from utils.agent_utils import get_chat_history, get_llm
+from utils.agent_utils import get_llm
 
 class AgentState(TypedDict):
     """
@@ -19,15 +18,21 @@ class AgentState(TypedDict):
 
     Attributes:
         messages: List of current chat messages
+        chat_history: List of chat history messages
         bounding_box: Bounding box instance representing a geographical area of interest.
         hotel_site_marker: Coordinates of a potential hotel site marker.
+        alternative_user_message: User message for the alternative response
         alternative_response: Alternative model response generated without tools
+        alternative_history: Message history for the alternative response
         selected_tools: List of tools that were selected by the tool selector
     """
     messages: Annotated[list[AnyMessage], add_messages]
+    chat_history: list[AnyMessage]
     bounding_box: BoundingBox
     hotel_site_marker: PointMarker
+    alternative_user_message: Optional[str]
     alternative_response: Optional[AIMessage]
+    alternative_history: Optional[list[AnyMessage]]
     selected_tools: list[str]
 
 def select_tools(state: AgentState):
@@ -43,24 +48,12 @@ def should_continue(state: AgentState, config: RunnableConfig):
         if state.get("alternative_response", None) is None:
             return ["alternative", "tools"]
         return "tools"
-
-    get_chat_history().add_messages(msgs)
-    last_message.run_id = config["configurable"]["run_id"]
-    for m in msgs:
-        st.session_state.all_messages[m.id] = m
-    alternative = state.get("alternative_response", None)
-    if  alternative is not None:
-        last_message.alternative_id = alternative.id
-        alternative.alternative_id = last_message.id
-        alternative.run_id = config["configurable"]["run_id"]
-        st.session_state.all_messages[alternative.id] = alternative
     return END
 
 def call_model(state: AgentState, config: RunnableConfig):
     llm = get_llm(config["configurable"]["model_name"])
 
-    chat_history = get_chat_history()
-    msgs = [SystemMessage(content=SYSTEM_PROMPT_COMPARISON.format(timestamp=get_current_timestamp()))] + list(chat_history.messages) + state["messages"]
+    msgs = [SystemMessage(content=SYSTEM_PROMPT_COMPARISON.format(timestamp=get_current_timestamp()))] + state["chat_history"] + state["messages"]
 
     selected_tools = state["selected_tools"]
     print("Generating with selected tools:", selected_tools)
@@ -72,11 +65,7 @@ def call_model(state: AgentState, config: RunnableConfig):
 def call_without_tools(state: AgentState, config: RunnableConfig):
     llm = get_llm(config["configurable"]["model_name"])
 
-    bbox_text = f"The bounding box is defined by the following coordinates (lat1, lon1, lat2, lon2):\n" \
-                f"{state['bounding_box'].to_string_latlon()}\n"
-    user_msg = HumanMessage(content=bbox_text + state["messages"][0].content)
-
-    msgs = [user_msg]
+    msgs = state["alternative_history"] + [state["alternative_user_message"]]
     response = llm.invoke(msgs)
     return {"alternative_response": response}
 
