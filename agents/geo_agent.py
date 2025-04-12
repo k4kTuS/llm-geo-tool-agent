@@ -53,4 +53,4 @@ workflow.add_edge(START, "agent")
 workflow.add_conditional_edges("agent", should_continue, ["tools", END])
 workflow.add_edge("tools", "agent")
 
-geo_agent = workflow.compile()
+graph = workflow.compile()

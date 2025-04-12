@@ -8,9 +8,7 @@ from langgraph.graph.state import CompiledStateGraph
 import streamlit as st
 from streamlit_folium import st_folium
 
-from agents.agent_tool_selector import agent_tool_selector
-from agents.geo_agent import geo_agent
-from agents.comparison_geo_agent import comparison_geo_agent
+from agents import get_agent
 from visualizations.drawmap import DrawMap
 from paths import PROJECT_ROOT
 from utils.streamlit_utils import (
@@ -136,7 +134,7 @@ def show_chat_app():
                 "hotel_site_marker": hotel_site_marker,
             }
 
-            agent: CompiledStateGraph = comparison_geo_agent
+            agent: CompiledStateGraph = get_agent(name="geo")
             with st.spinner("Give me a second, I am thinking..."):
                 last_message_id = 0
                 for chunk in agent.stream(

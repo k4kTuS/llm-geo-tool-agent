@@ -92,4 +92,4 @@ workflow.add_edge("tool_selection", "agent")
 workflow.add_conditional_edges("agent", should_continue, ["tools", "alternative", END])
 workflow.add_edge("tools", "agent")
 
-agent_tool_selector = workflow.compile()
+graph = workflow.compile()
