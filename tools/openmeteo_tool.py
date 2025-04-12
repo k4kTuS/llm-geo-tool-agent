@@ -53,7 +53,7 @@ class WeatherForecastTool(BaseTool):
             return "ValueError: Invalid end date format. Please use YYYY-MM-DD.", None
         if end_date < start_date:
             return "Error: End date must be after start date.", None
-        if (start_date < dt.now()):
+        if (start_date.date() < dt.now().date()):
             return "Error: Could not provide historical weather data.", None
         
         date_range_str = f"for {start_date.strftime("%Y-%m-%d")}" if start_date == end_date else f"from {start_date.strftime("%Y-%m-%d")} to {end_date.strftime("%Y-%m-%d")}"
