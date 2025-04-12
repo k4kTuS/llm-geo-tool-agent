@@ -13,22 +13,18 @@ from agents.geo_agent import geo_agent
 from agents.comparison_geo_agent import comparison_geo_agent
 from visualizations.drawmap import DrawMap
 from paths import PROJECT_ROOT
-from utils.streamlit_utils import *
+from utils.streamlit_utils import (
+    add_pill_to_chat_input,
+    initialize_session_state,
+    parse_drawing_geometry,
+    write_conversation,
+    write_message
+)
 from schemas.geometry import BoundingBox, PointMarker
 from utils.agent_utils import clear_chat_history, DEFAULT_LLM, LLM_OPTIONS
 
 load_dotenv()
-
-if "show_tool_calls" not in st.session_state:
-    st.session_state.show_tool_calls = False
-if "inputs_disabled" not in st.session_state:
-    st.session_state.inputs_disabled = False
-if "all_messages" not in st.session_state:
-    st.session_state.all_messages = {}
-if "thread_id" not in st.session_state:
-    st.session_state.thread_id = uuid.uuid4()
-if "llm_choice" not in st.session_state:
-    st.session_state.llm_choice = DEFAULT_LLM
+initialize_session_state()
 
 st.session_state.user = "matus"
 st.set_page_config(

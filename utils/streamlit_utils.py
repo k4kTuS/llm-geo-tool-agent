@@ -1,6 +1,7 @@
 import json
 import re
 import time
+import uuid
 
 import streamlit as st
 
@@ -9,8 +10,22 @@ from langsmith import Client
 from shapely.geometry import shape
 from streamlit.components.v1 import html
 
-from utils.agent_utils import get_chat_history
+from utils.agent_utils import get_chat_history, DEFAULT_LLM
 from schemas.data import DataResponse
+
+def initialize_session_state():
+    if "show_tool_calls" not in st.session_state:
+        st.session_state.show_tool_calls = False
+    if "inputs_disabled" not in st.session_state:
+        st.session_state.inputs_disabled = False
+    if "all_messages" not in st.session_state:
+        st.session_state.all_messages = {}
+    if "thread_id" not in st.session_state:
+        st.session_state.thread_id = uuid.uuid4()
+    if "llm_choice" not in st.session_state:
+        st.session_state.llm_choice = DEFAULT_LLM
+    if "chats" not in st.session_state:
+        st.session_state.chats = []
 
 def parse_drawing_geometry(map_data: dict, drawing_type: str) -> str:
     if not map_data["all_drawings"]:
