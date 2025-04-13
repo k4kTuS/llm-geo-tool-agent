@@ -6,10 +6,12 @@ import numpy as np
 import pandas as pd
 import pyproj
 from shapely.ops import transform
+from shapely import box
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from paths import DATA_DIR
+from tools.base_tools import GeospatialTool
 from tools.input_schemas.base_schemas import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
@@ -18,7 +20,7 @@ TOP_K = 10
 YEAR_COLUMNS = [str(year) for year in range(2012, 2024)]
 NO_DATA_STRINGS = ['-', '.', 'x', 'i.d.']
 
-class TourismTool(BaseTool):
+class TourismTool(GeospatialTool):
     name: str = "get_tourism_data"
     description: str = (
         "Provides historical tourism data for the bounding box. "
@@ -27,6 +29,7 @@ class TourismTool(BaseTool):
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
     response_format: str = "content_and_artifact"
+    boundary = box(12.09,48.55,18.87,51.06)
 
     def _run(self, bounding_box: BoundingBox):
         municipality_data = get_region_tourism_data(bounding_box)    

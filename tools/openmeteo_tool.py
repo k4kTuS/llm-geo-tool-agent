@@ -7,6 +7,7 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 from typing import Optional, Type, Literal
 
+from tools.base_tools import GeospatialTool
 from tools.input_schemas.openmeteo_schemas import OpenmeteoForecastInput
 from tools.input_schemas.base_schemas import BaseGeomInput
 from schemas.geometry import BoundingBox
@@ -16,7 +17,7 @@ from utils.openmeteo_utils import generate_grid_points, describe_dominant_wind_d
 OPENMETEO_URL = "https://api.open-meteo.com/v1/forecast"
 FORECAST_DAYS_MAX = 7
 
-class CurrentWeatherTool(BaseTool):
+class CurrentWeatherTool(GeospatialTool):
     name: str = "current_weather"
     description: str = (
         "Retrieves current weather data for the bounding box. "
@@ -29,7 +30,7 @@ class CurrentWeatherTool(BaseTool):
         return f"Current weather data for the selected region:\n"\
             + current_data
 
-class WeatherForecastTool(BaseTool):
+class WeatherForecastTool(GeospatialTool):
     name: str = "weather_forecast"
     description: str = (
         "Retrieves weather forecast data for the bounding box. "

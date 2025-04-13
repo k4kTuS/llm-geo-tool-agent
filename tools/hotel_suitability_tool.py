@@ -2,17 +2,20 @@ from typing import Optional, Type
 
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
+from shapely.geometry import box
 
 from models import hotels_model
+from tools.base_tools import GeospatialTool
 from tools.input_schemas.hotel_schemas import HotelSuitabilitySchema
 from schemas.geometry import PointMarker
 from utils.tool_utils import find_square_for_marker
 
 
-class HotelSuitabilityTool(BaseTool):
+class HotelSuitabilityTool(GeospatialTool):
     name: str = "estimate_hotel_suitability"
     description: str = "Using data about hotels and other establishments, estimate the number of hotels that could be suitable for the marked site provided during runtime."
     args_schema: Optional[Type[BaseModel]] = HotelSuitabilitySchema
+    boundary = box(12.09,48.55,18.87,51.06)
 
     def _run(self, hotel_site_marker: PointMarker):
         if hotel_site_marker is None:

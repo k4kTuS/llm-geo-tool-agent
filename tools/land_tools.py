@@ -5,15 +5,17 @@ import numpy as np
 from langchain_core.tools import BaseTool
 from PIL import Image
 from pydantic import BaseModel
+from shapely import box
 from typing import Optional, Type
 
+from tools.base_tools import GeospatialTool
 from tools.input_schemas.base_schemas import BaseGeomInput
 from schemas.geometry import BoundingBox
 from utils.tool_utils import get_map_data, get_color_counts
 from utils.map_service_utils import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_ranges
 
 
-class LandCoverTool(BaseTool):
+class LandCoverTool(GeospatialTool):
     name: str = "land_cover_tool"
     description: str = (
         "Provides processed land cover data for the bounding box. "
@@ -21,6 +23,7 @@ class LandCoverTool(BaseTool):
         "The result is a summary of land cover types and their respective areas."
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
+    boundary = box(-20.0, 30.0, 40.0, 70.0)
 
     def _run(self, bounding_box: BoundingBox):
         map_data = get_map_data(bounding_box, "OLU_EU", {"layers": "olu_obj_lc"})
@@ -53,7 +56,7 @@ class LandCoverTool(BaseTool):
             + "\n".join(small_zones_data)
 
 
-class LandUseTool(BaseTool):
+class LandUseTool(GeospatialTool):
     name: str = "land_use_tool"
     description: str = (
         "Provides processed land use data for the bounding box. "
@@ -61,6 +64,7 @@ class LandUseTool(BaseTool):
         "The result is a summary of land use types and their respective areas."
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
+    boundary = box(-20.0, 30.0, 40.0, 70.0)
 
     def _run(self, bounding_box: BoundingBox):
         map_data = get_map_data(bounding_box, "OLU_EU")
@@ -93,10 +97,11 @@ class LandUseTool(BaseTool):
             + "\n".join(small_zones_data)
     
 
-class ElevationTool(BaseTool):
+class ElevationTool(GeospatialTool):
     name: str = "elevation_tool"
     description: str = "Get processed data from digital elevation model."
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
+    boundary = box(11.86, 48.52, 19.02, 51.11)
 
     def _run(self, bounding_box: BoundingBox):
         map_data = get_map_data(bounding_box, "DEM_MASL")

@@ -3,16 +3,19 @@ from typing import Optional, Type
 import requests
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
+from shapely.geometry import box
 
+from tools.base_tools import GeospatialTool
 from tools.input_schemas.base_schemas import BaseGeomInput
 from schemas.geometry import BoundingBox
 from utils.map_service_utils import wfs_config
 
 
-class SpoiTool(BaseTool):
+class SpoiTool(GeospatialTool):
     name: str = "get_smart_points_of_interest"
     description: str = "Provides processed data about points of interest for the bounding box."
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
+    boundary = box(12.4, 48.9, 14.5, 50.15)
 
     def _run(self, bounding_box: BoundingBox):
         spoi_data = get_spoi_data(bounding_box)

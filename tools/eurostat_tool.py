@@ -8,16 +8,18 @@ from pyproj import Transformer
 from shapely.geometry import box
 from typing import Optional, Type
 
+from tools.base_tools import GeospatialTool
 from tools.input_schemas.base_schemas import BaseGeomInput
 from schemas.geometry import BoundingBox
 from utils.tool_utils import get_map_data
 
 EUROSTAT_GRID_SIZE = 1000
 
-class EurostatPopulationTool(BaseTool):
+class EurostatPopulationTool(GeospatialTool):
     name: str = "get_eurostat_population_data"
     description: str = "Provides processed population data from eurostat for the bounding box."
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
+    boundary = box(-20.0, 30.0, 40.0, 70.0)
 
     def _run(self, bounding_box: BoundingBox):
         # Snap the bounding box to the nearest grid cells and obtain number of grid cells for width and height

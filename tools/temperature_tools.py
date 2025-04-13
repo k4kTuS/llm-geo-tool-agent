@@ -6,19 +6,22 @@ import numpy as np
 from langchain_core.tools import BaseTool
 from PIL import Image
 from pydantic import BaseModel
+from shapely.geometry import box
 
+from tools.base_tools import GeospatialTool
 from tools.input_schemas.temperature_schemas import TemperatureAnalysisInput
 from schemas.geometry import BoundingBox
 from utils.tool_utils import get_map_data
 
 
-class TemperatureAnalysisTool(BaseTool):
+class TemperatureAnalysisTool(GeospatialTool):
     name: str = "get_monthly_average_temperature_last_5yrs"
     description: str = (
         "Provides monthly average temperature data for the bounding box. "
         "Data is calculated as an average over the last five years"
     )
     args_schema: Optional[Type[BaseModel]] = TemperatureAnalysisInput
+    boundary = box(-26.0, 33.9, 32.1, 74.0)
 
     def _run(self, bounding_box: BoundingBox, month: str) -> str:
         map_data = get_map_data(bounding_box, "climate_era5_temperature_last_5yrs_month_avg", {"TIME": f"2020{month}01"})
@@ -28,7 +31,7 @@ class TemperatureAnalysisTool(BaseTool):
         return f"Average temperature in {month_name}: {np.array(image).mean():.2f} °C"
 
 
-class TemperatureLongPredictionTool(BaseTool):
+class TemperatureLongPredictionTool(GeospatialTool):
     name: str = "get_monthly_average_temperature_prediction_2030s"
     description: str = (
         "Provides long term temperature prediction for the bounding box."
