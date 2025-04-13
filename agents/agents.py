@@ -4,10 +4,10 @@ from langchain_core.messages import HumanMessage
 from langgraph.graph.state import CompiledStateGraph
 import streamlit as st
 
-from agents import (
-    agent_tool_selector,
-    comparison_geo_agent,
-    geo_agent
+from agents.graphs import (
+    comparison_geo_graph,
+    geo_graph,
+    tool_selector_graph
 )
 from schemas.geometry import BoundingBox, PointMarker
 from utils.agent_utils import get_chat_history, pair_response_messages, store_run_messages
@@ -106,10 +106,10 @@ class AgentToolSelector(BaseAgent):
 
 def get_agent(name: str):
     if name == "geo":
-        return GeoAgent(name, geo_agent.graph)
+        return GeoAgent(name, geo_graph.graph)
     elif name == "comparison_geo":
-        return ComparisonGeoAgent(name, comparison_geo_agent.graph)
+        return ComparisonGeoAgent(name, comparison_geo_graph.graph)
     elif name == "tool_selector_geo":
-        return AgentToolSelector(name, agent_tool_selector.graph)
+        return AgentToolSelector(name, tool_selector_graph.graph)
     else:
         raise ValueError(f"Unknown agent name: {name}")
