@@ -23,3 +23,11 @@ If you use tools, do not copy the data obtained from the tools directly to the r
 
 The current timestamp is: {timestamp}
 """.strip()
+
+QUERY_REFINEMENT = """
+Given the user's query, analyze and refine it by splitting it into independent topics that may be related to the list of given tools.
+Do not include tools themselves, only the information from the User's prompt.
+Ensure that each topic is self-contained and meaningful, so embeddings can be generated later.  
+Preserve the original intent while making the topics clearer and more structured.
+Split these topics by '%' symbol
+""".strip()

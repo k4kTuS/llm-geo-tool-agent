@@ -6,11 +6,12 @@ from langgraph.prebuilt import ToolNode
 from typing_extensions import Annotated, TypedDict, Optional
 
 from agents.prompts import SYSTEM_PROMPT_COMPARISON, get_current_timestamp
-from agents.tool_selector import filter_tools
-from paths import PROJECT_ROOT
+from agents.tool_filters import FILTER_REGISTRY, BaseToolFilter
 from tools import get_all_tools
 from schemas.geometry import BoundingBox, PointMarker
 from utils.agent_utils import get_llm
+
+_all_tools = get_all_tools()
 
 class AgentState(TypedDict):
     """
@@ -35,11 +36,15 @@ class AgentState(TypedDict):
     alternative_history: Optional[list[AnyMessage]]
     selected_tools: list[str]
 
-def select_tools(state: AgentState):
-    last_user_message = state["messages"][-1]
-    query = last_user_message.content
-    selected_tools = filter_tools([tool.name for tool in get_all_tools()], query)
-    return {"selected_tools": selected_tools}
+def select_tools(state: AgentState, config: RunnableConfig):
+    filter_names = config["configurable"].get("filters", ["semantic"])
+
+    tools = _all_tools
+    for filter_name in filter_names:
+        filter: BaseToolFilter = FILTER_REGISTRY[filter_name]()
+        tools = filter.filter(tools, state)
+
+    return {"selected_tools": [tool.name for tool in tools]}
 
 def should_continue(state: AgentState, config: RunnableConfig):
     msgs = state["messages"]
@@ -57,7 +62,7 @@ def call_model(state: AgentState, config: RunnableConfig):
 
     selected_tools = state["selected_tools"]
     print("Generating with selected tools:", selected_tools)
-    llm_with_tools = llm.bind_tools([tool for tool in get_all_tools() if tool.name in selected_tools])
+    llm_with_tools = llm.bind_tools([tool for tool in _all_tools if tool.name in selected_tools])
 
     response = llm_with_tools.invoke(msgs)
     return {"messages": [response]}
@@ -73,7 +78,7 @@ workflow = StateGraph(AgentState)
 
 workflow.add_node("tool_selection", select_tools)
 workflow.add_node("agent", call_model)
-workflow.add_node("tools", ToolNode(get_all_tools()))
+workflow.add_node("tools", ToolNode(_all_tools))
 workflow.add_node("alternative", call_without_tools)
 
 workflow.add_edge(START, "tool_selection")
