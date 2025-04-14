@@ -31,7 +31,7 @@ class GeoAgent(BaseAgent):
             "messages": [HumanMessage(content=prompt)],
             "chat_history": get_chat_history().messages,
             "bounding_box": bounding_box,
-            "hotel_site_marker": marker
+            "point_marker": marker
         }
         return self.graph.stream(
             input=input,
@@ -53,7 +53,7 @@ class ComparisonGeoAgent(BaseAgent):
             "messages": [HumanMessage(content=prompt)],
             "chat_history": get_chat_history().messages,
             "bounding_box": bounding_box,
-            "hotel_site_marker": marker,
+            "point_marker": marker,
             "alternative_user_message": HumanMessage(content=bbox_text + prompt),
             "alternative_history": get_chat_history(alternative=True).messages,
         }
@@ -83,7 +83,7 @@ class AgentToolSelector(BaseAgent):
             "messages": [HumanMessage(content=prompt)],
             "chat_history": get_chat_history().messages,
             "bounding_box": bounding_box,
-            "hotel_site_marker": marker,
+            "point_marker": marker,
             "alternative_user_message": HumanMessage(content=bbox_text + prompt),
             "alternative_history": get_chat_history(alternative=True).messages,
         }

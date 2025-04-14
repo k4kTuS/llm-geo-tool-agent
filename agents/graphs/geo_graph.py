@@ -18,12 +18,12 @@ class AgentState(TypedDict):
         messages: List of current chat messages
         chat_history: List of chat history messages
         bounding_box: Bounding box instance representing a geographical area of interest.
-        hotel_site_marker: Coordinates of a potential hotel site marker.
+        point_marker: Point marker representing a specific location in addition to the bounding box.
     """
     messages: Annotated[list[AnyMessage], add_messages]
     chat_history: list[AnyMessage]
     bounding_box: BoundingBox
-    hotel_site_marker: PointMarker
+    point_marker: PointMarker
 
 def should_continue(state: AgentState, config: RunnableConfig):
     msgs = state["messages"]

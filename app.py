@@ -93,7 +93,7 @@ def show_chat_app():
         )
         
         st.session_state.selected_area_wkt = parse_drawing_geometry(map_data, "Polygon")
-        st.session_state.hotel_site_wkt = parse_drawing_geometry(map_data, "Point")
+        st.session_state.point_marker_wkt = parse_drawing_geometry(map_data, "Point")
 
     with st.expander("Click to select some example questions", icon="🔍"):
         examples = [line.rstrip() for line in open('resources/example_questions.txt')]
@@ -108,7 +108,7 @@ def show_chat_app():
             time.sleep(2)
         else:
             bbox = BoundingBox(wkt=st.session_state.selected_area_wkt)
-            hotel_site_marker = PointMarker(wkt=st.session_state.hotel_site_wkt) if st.session_state.hotel_site_wkt else None
+            point_marker = PointMarker(wkt=st.session_state.point_marker_wkt) if st.session_state.point_marker_wkt else None
             
             run_id = uuid.uuid4() # For langsmith
             config = {
@@ -121,7 +121,7 @@ def show_chat_app():
                 "metadata": {
                     "bounding_box_wkt": bbox.wkt,
                     "user": st.session_state.user,
-                    "hotel_site_marker_wkt": hotel_site_marker.wkt if hotel_site_marker else None,
+                    "point_marker": point_marker.wkt if point_marker else None,
                 },
             }
 
@@ -129,7 +129,7 @@ def show_chat_app():
             with st.spinner("Give me a second, I am thinking..."):
                 last_message_id = 0
                 state = None
-                for chunk in agent.run(prompt, bbox, hotel_site_marker, config):
+                for chunk in agent.run(prompt, bbox, point_marker, config):
                     if "selected_tools" in chunk:
                         st.session_state.filtered_tools = chunk["selected_tools"]
                     for i in range(last_message_id, len(chunk["messages"])):

@@ -21,7 +21,7 @@ class AgentState(TypedDict):
         messages: List of current chat messages
         chat_history: List of chat history messages
         bounding_box: Bounding box instance representing a geographical area of interest.
-        hotel_site_marker: Coordinates of a potential hotel site marker.
+        point_marker: Point marker representing a specific location in addition to the bounding box.
         alternative_user_message: User message for the alternative response
         alternative_response: Alternative model response generated without tools
         alternative_history: Message history for the alternative response
@@ -30,7 +30,7 @@ class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
     chat_history: list[AnyMessage]
     bounding_box: BoundingBox
-    hotel_site_marker: PointMarker
+    point_marker: PointMarker
     alternative_user_message: Optional[str]
     alternative_response: Optional[AIMessage]
     alternative_history: Optional[list[AnyMessage]]

@@ -35,9 +35,9 @@ def get_color_counts(image, rgb_mapping, n_colors=None):
     # Get the top n colors
     return sorted_pixel_counts[:n_colors]
 
-def find_square_for_marker(square_list, marker_point: PointMarker):
-    m_lon = marker_point.x
-    m_lat = marker_point.y
+def find_square_for_marker(square_list, point_marker: PointMarker):
+    m_lon = point_marker.x
+    m_lat = point_marker.y
     for square in square_list:
         lat1, lon1, lat2, lon2 = map(float, square.split('_'))
 
