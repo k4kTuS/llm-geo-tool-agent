@@ -5,6 +5,7 @@ import numpy as np
 from langchain_core.tools import BaseTool
 from PIL import Image
 from pydantic import BaseModel
+from rasterio.io import MemoryFile
 from shapely import box
 from typing import Optional, Type
 
@@ -99,32 +100,48 @@ class LandUseTool(GeospatialTool):
 
 class ElevationTool(GeospatialTool):
     name: str = "elevation_tool"
-    description: str = "Get processed data from digital elevation model."
+    description: str = "Provides processed data from digital elevation model, including basic statistics and division into elevation zones."
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
     boundary = box(11.86, 48.52, 19.02, 51.11)
 
     def _run(self, bounding_box: BoundingBox):
         map_data = get_map_data(bounding_box, "DEM_MASL")
-        image = Image.open(BytesIO(map_data))
-        elevations = np.array(image)
-        zones_data = count_elevation_zones(elevations)
         
-        n_pixels = len(image.getdata())
+        with MemoryFile(map_data) as memfile:
+            with memfile.open() as dataset:
+                raster = dataset.read(1)
+                # Mask nodata values
+                nodata_value = dataset.nodata
+                if nodata_value is not None:
+                    raster = np.ma.masked_equal(raster, nodata_value)
+                stats = {
+                    "min": raster.min(),
+                    "max": raster.max(),
+                    "mean": raster.mean(),
+                    "std": raster.std(),
+                }
+
+        zones_data = count_elevation_zones(raster)
+        n_pixels = len(raster.flatten())
         bbox_area = bounding_box.area
         zones_ratios = {k: v / n_pixels for k, v in zones_data.items()}
         
-        return f"Average elevation: {elevations.mean():.2f} meters\n"\
-            + f"Max elevation: {elevations.max()} meters\n"\
-            + f"Min elevation: {elevations.min()} meters\n\n"\
-            + "Elevation zones:\n"\
-            + "\n".join([f"{k}: {v * bbox_area:.2f} km squared ({v*100:.2f}%)" for k, v in zones_ratios.items() if v != 0])
+        return (
+            f"### Elevation Statisticts:\n"
+            f"Average elevation: {stats["mean"]:.2f} meters\n"
+            f"Max elevation: {stats["max"]:.2f} meters\n"
+            f"Min elevation: {stats["mean"]:.2f} meters\n"
+            f"Standard deviation: {stats["std"]:.2f} meters\n"
+            "### Elevation Zones Coverage:\n"
+            + "\n".join([f"{k}: {v * bbox_area:.2f} km2 ({v*100:.2f}%)" for k, v in zones_ratios.items() if v != 0])
+        )
 
 def count_elevation_zones(elevation_array):
-    zone_counts = {name: 0 for _, _, name in elevation_ranges}  # Initialize counts
-
+    zone_counts = {}
+    # Count pixels in each elevation range
     for min_val, max_val, zone_name in elevation_ranges:
-        # Count values in the current range
+        zone_label = f"{zone_name} ({min_val}-{max_val} m)"
         count = np.sum((elevation_array >= min_val) & (elevation_array < max_val))
-        zone_counts[zone_name] += count
+        zone_counts[zone_label] = count
 
     return zone_counts
