@@ -1,5 +1,4 @@
 catboost
-configparser
 datetime
 folium
 geopandas
@@ -15,6 +14,7 @@ pandas
 Pillow
 pyproj
 python-dotenv
+rasterio
 requests
 scikit-learn
 scipy
