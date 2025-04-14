@@ -2,7 +2,7 @@ from .eurostat import EurostatPopulationTool
 from .hotel_suitability import HotelSuitabilityTool
 from .land import LandCoverTool, LandUseTool, ElevationTool
 from .openmeteo import CurrentWeatherTool, WeatherForecastTool
-from .poi import SpoiTool
+from .poi import PoiTool
 from .temperature import TemperatureAnalysisTool, TemperatureLongPredictionTool
 from .tourism import TourismTool
 
@@ -14,7 +14,7 @@ def get_all_tools():
         LandCoverTool(),
         LandUseTool(),
         ElevationTool(),
-        SpoiTool(),
+        PoiTool(),
         TemperatureAnalysisTool(),
         TemperatureLongPredictionTool(),
         CurrentWeatherTool(),
