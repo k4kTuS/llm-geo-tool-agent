@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import streamlit as st
 
-from paths import DATA_DIR, SAVED_MODELS_DIR
+from project_paths import DATA_DIR, SAVED_MODELS_DIR
 
 def train_hotels_model(data, test_size=0.2, rd_seed=42, iters=5000, lr=0.01, depth=5, eval=False):
     # Prepare data

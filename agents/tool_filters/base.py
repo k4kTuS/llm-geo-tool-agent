@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Any
 
-from tools.base_tools import GeospatialTool
+from tools.base import GeospatialTool
 
 class BaseToolFilter(ABC):
     @abstractmethod

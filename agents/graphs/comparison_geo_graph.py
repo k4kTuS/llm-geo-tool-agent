@@ -8,7 +8,7 @@ from typing_extensions import Annotated, TypedDict, Optional
 from agents.prompts import SYSTEM_PROMPT_COMPARISON, get_current_timestamp
 from tools import get_all_tools
 from schemas.geometry import BoundingBox, PointMarker
-from utils.agent_utils import get_llm
+from utils.agent import get_llm
 
 class AgentState(TypedDict):
     """

@@ -5,10 +5,10 @@ from pydantic import BaseModel
 from shapely.geometry import box
 
 from models import hotels_model
-from tools.base_tools import GeospatialTool
-from tools.input_schemas.hotel_schemas import HotelSuitabilitySchema
+from tools.base import GeospatialTool
+from tools.input_schemas.hotel import HotelSuitabilitySchema
 from schemas.geometry import PointMarker
-from utils.tool_utils import find_square_for_marker
+from utils.tool import find_square_for_marker
 
 
 class HotelSuitabilityTool(GeospatialTool):

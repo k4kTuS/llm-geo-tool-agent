@@ -7,12 +7,12 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 from typing import Optional, Type, Literal
 
-from tools.base_tools import GeospatialTool
-from tools.input_schemas.openmeteo_schemas import OpenmeteoForecastInput
-from tools.input_schemas.base_schemas import BaseGeomInput
+from tools.base import GeospatialTool
+from tools.input_schemas.openmeteo import OpenmeteoForecastInput
+from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
-from utils.openmeteo_utils import generate_grid_points, describe_dominant_wind_direction
+from utils.openmeteo import generate_grid_points, describe_dominant_wind_direction
 
 OPENMETEO_URL = "https://api.open-meteo.com/v1/forecast"
 FORECAST_DAYS_MAX = 7

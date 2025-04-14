@@ -3,7 +3,7 @@ import requests
 from scipy.spatial import KDTree
 
 from schemas.geometry import BoundingBox, PointMarker
-from utils.map_service_utils import *
+from utils.map_service import *
 
 def get_color_counts(image, rgb_mapping, n_colors=None):
     pixels = np.array(image)

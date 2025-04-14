@@ -9,7 +9,7 @@ from agents.prompts import SYSTEM_PROMPT_COMPARISON, get_current_timestamp
 from agents.tool_filters import FILTER_REGISTRY, BaseToolFilter
 from tools import get_all_tools
 from schemas.geometry import BoundingBox, PointMarker
-from utils.agent_utils import get_llm
+from utils.agent import get_llm
 
 _all_tools = get_all_tools()
 

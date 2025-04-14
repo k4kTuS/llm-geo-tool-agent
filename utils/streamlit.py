@@ -10,7 +10,7 @@ from langsmith import Client
 from shapely.geometry import shape
 from streamlit.components.v1 import html
 
-from utils.agent_utils import get_chat_history, DEFAULT_LLM
+from utils.agent import get_chat_history, DEFAULT_LLM
 from schemas.data import DataResponse
 
 def initialize_session_state():

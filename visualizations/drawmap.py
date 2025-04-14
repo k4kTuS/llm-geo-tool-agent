@@ -2,7 +2,7 @@ import folium
 from folium.plugins import Draw
 from folium.utilities import JsCode
 
-from paths import ASSETS_DIR
+from project_paths import ASSETS_DIR
 
 class DrawMap:
     def __init__(self, location=(49.75, 13.39), zoom_start=13):

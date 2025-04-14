@@ -8,10 +8,10 @@ from PIL import Image
 from pydantic import BaseModel
 from shapely.geometry import box
 
-from tools.base_tools import GeospatialTool
-from tools.input_schemas.temperature_schemas import TemperatureAnalysisInput
+from tools.base import GeospatialTool
+from tools.input_schemas.temperature import TemperatureAnalysisInput
 from schemas.geometry import BoundingBox
-from utils.tool_utils import get_map_data
+from utils.tool import get_map_data
 
 
 class TemperatureAnalysisTool(GeospatialTool):

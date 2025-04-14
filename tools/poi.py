@@ -5,10 +5,10 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 from shapely.geometry import box
 
-from tools.base_tools import GeospatialTool
-from tools.input_schemas.base_schemas import BaseGeomInput
+from tools.base import GeospatialTool
+from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
-from utils.map_service_utils import wfs_config
+from utils.map_service import wfs_config
 
 
 class SpoiTool(GeospatialTool):

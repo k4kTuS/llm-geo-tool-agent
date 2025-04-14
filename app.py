@@ -7,7 +7,7 @@ from streamlit_folium import st_folium
 
 from agents import get_agent, BaseAgent
 from visualizations.drawmap import DrawMap
-from utils.streamlit_utils import (
+from utils.streamlit import (
     add_pill_to_chat_input,
     initialize_session_state,
     parse_drawing_geometry,
@@ -15,7 +15,7 @@ from utils.streamlit_utils import (
     write_message
 )
 from schemas.geometry import BoundingBox, PointMarker
-from utils.agent_utils import clear_chat_history, LLM_OPTIONS
+from utils.agent import clear_chat_history, LLM_OPTIONS
 
 load_dotenv()
 initialize_session_state()

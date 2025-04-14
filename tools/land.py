@@ -9,11 +9,11 @@ from rasterio.io import MemoryFile
 from shapely import box
 from typing import Optional, Type
 
-from tools.base_tools import GeospatialTool
-from tools.input_schemas.base_schemas import BaseGeomInput
+from tools.base import GeospatialTool
+from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
-from utils.tool_utils import get_map_data, get_color_counts
-from utils.map_service_utils import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_ranges
+from utils.tool import get_map_data, get_color_counts
+from utils.map_service import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_ranges
 
 
 class LandCoverTool(GeospatialTool):

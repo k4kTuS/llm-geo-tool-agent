@@ -8,10 +8,10 @@ from pyproj import Transformer
 from shapely.geometry import box
 from typing import Optional, Type
 
-from tools.base_tools import GeospatialTool
-from tools.input_schemas.base_schemas import BaseGeomInput
+from tools.base import GeospatialTool
+from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
-from utils.tool_utils import get_map_data
+from utils.tool import get_map_data
 
 EUROSTAT_GRID_SIZE = 1000
 

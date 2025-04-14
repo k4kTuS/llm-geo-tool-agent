@@ -1,10 +1,10 @@
-from .eurostat_tool import EurostatPopulationTool
-from .hotel_suitability_tool import HotelSuitabilityTool
-from .land_tools import LandCoverTool, LandUseTool, ElevationTool
-from .openmeteo_tool import CurrentWeatherTool, WeatherForecastTool
-from .spoi_tool import SpoiTool
-from .temperature_tools import TemperatureAnalysisTool, TemperatureLongPredictionTool
-from .tourism_tool import TourismTool
+from .eurostat import EurostatPopulationTool
+from .hotel_suitability import HotelSuitabilityTool
+from .land import LandCoverTool, LandUseTool, ElevationTool
+from .openmeteo import CurrentWeatherTool, WeatherForecastTool
+from .poi import SpoiTool
+from .temperature import TemperatureAnalysisTool, TemperatureLongPredictionTool
+from .tourism import TourismTool
 
 
 def get_all_tools():
