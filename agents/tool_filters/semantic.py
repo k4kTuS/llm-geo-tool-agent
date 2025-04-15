@@ -1,16 +1,12 @@
 from openai import OpenAI
-from sentence_transformers import SentenceTransformer, util
-import streamlit as st
+from sentence_transformers import util
 import torch
 
 from agents.tool_filters.base import BaseToolFilter
 from agents.prompts import QUERY_REFINEMENT
+from utils.encoder import get_encoder
 
 client = OpenAI()
-
-@st.cache_resource
-def load_emb_model():
-    return SentenceTransformer("intfloat/multilingual-e5-small")
 
 class SemanticToolFilter(BaseToolFilter):
     def filter(self, tools, context):
@@ -101,6 +97,6 @@ class SemanticToolFilter(BaseToolFilter):
             tool_names,
         )
         print("Query transformation:", output)
-        embedding_model = load_emb_model()
+        embedding_model = get_encoder()
         filtered_tools = self._get_relevant_tools(output, tool_names, embedding_model, threshold=0.8)
         return filtered_tools
