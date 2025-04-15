@@ -22,8 +22,12 @@ def get_chat_history(alternative: bool = False) -> InMemoryChatMessageHistory:
     return st.session_state[chat_key]
 
 def clear_chat_history():
-    del st.session_state[f'chat_{st.session_state.thread_id}']
-    del st.session_state[f'chat_alt_{st.session_state.thread_id}']
+    chat_key = f'chat_{st.session_state.thread_id}'
+    chat_alt_key = f'chat_alt_{st.session_state.thread_id}'
+    if chat_key in st.session_state:
+        del st.session_state[chat_key]
+    if chat_alt_key in st.session_state:
+        del st.session_state[chat_alt_key]
     st.session_state.all_messages = {}
 
 def get_llm(model_name: str) -> BaseChatModel:
