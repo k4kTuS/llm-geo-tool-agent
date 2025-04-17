@@ -30,6 +30,12 @@ class EurostatPopulationTool(GeospatialTool):
             x_grid_size=EUROSTAT_GRID_SIZE,
             y_grid_size=EUROSTAT_GRID_SIZE
         )
+        # Problem when retrieving only one grid cell - 1x1 pixel is not enough
+        cell_duplication = 1
+        if dimensions[0] == 1 and dimensions[1] == 1:
+            dimensions = (2, 2)
+            cell_duplication = 4
+        
         # Download population layers
         total_data = get_map_data(
             bbox_snapped,
@@ -52,19 +58,28 @@ class EurostatPopulationTool(GeospatialTool):
             }
         )
         # Calculate total and employed population
-        arr_total = np.array(Image.open(BytesIO(total_data)))
-        arr_employed = np.array(Image.open(BytesIO(employed_data)))
+        arr_total = np.array(Image.open(BytesIO(total_data))) / cell_duplication
+        arr_employed = np.array(Image.open(BytesIO(employed_data))) / cell_duplication
         total_sum = int(np.sum(arr_total))
         employed_sum = int(np.sum(arr_employed))
         return "## Eurostat data:\n"\
             + f"- Total population: {total_sum:,}\n"\
-            + f"- Employed population: {employed_sum:,} ({(employed_sum / total_sum):.2%})\n"\
+            + f"- Employed population: {employed_sum:,} ({(employed_sum / total_sum+1e-10):.2%})\n"\
     
 def transform_snap_bbox(bbox: BoundingBox, source_crs: str, target_crs: str, x_grid_size: int, y_grid_size: int):
     """
-    Given a bounding box, source and target CRS, and grid cell sizes in the target CRS,,
+    Given a bounding box, source and target CRS, and grid cell sizes in the target CRS,
     this function snaps the bounds of the bounding box to the nearest grid cells and calculates
     the number of grid cells in each direction inside the bounding box.
+
+    Args:
+        bbox (BoundingBox): The bounding box to snap.
+        source_crs (str): The source CRS of the bounding box.
+        target_crs (str): The target CRS to which the bounding box should be transformed.
+        x_grid_size (int): The size of the grid cells in the x-direction in the target CRS.
+        y_grid_size (int): The size of the grid cells in the y-direction in the target CRS.
+    Returns:
+        tuple: A tuple containing the snapped bounding box and the number of grid cells in each direction.
     """
     transformer = Transformer.from_crs(source_crs, target_crs, always_xy=True)
     bounds_target = transformer.transform_bounds(*bbox.bounds_lonlat())
