@@ -13,6 +13,7 @@ from typing import Optional, Type
 from tools.base import GeospatialTool
 from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
+from schemas.data import DataResponse
 from utils.tool import get_map_data, get_color_counts, count_components
 from utils.map_service import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_ranges
 
@@ -25,6 +26,7 @@ class LandCoverTool(GeospatialTool):
         "The result is a summary of land cover types, area sizes, and counts."
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
+    response_format: str = "content_and_artifact"
     boundary = box(-20.0, 30.0, 40.0, 70.0)
 
     def _run(self, bounding_box: BoundingBox):
@@ -58,16 +60,24 @@ class LandCoverTool(GeospatialTool):
         df_main = df[~df['small']].drop(columns=['small'])
         df_small = df[df['small']].drop(columns=['small'])
         
-        markdown = f"### Map Area: {bbox_area:.2f} {unit}\n\n"
+        output = f"### Map Area: {bbox_area:.2f} {unit}\n\n"
         if not df_main.empty:
-            markdown += "#### Land Cover Summary\n\n"
-            markdown += df_main.to_markdown(index=False)
-            markdown += "\n\n"
+            output += "#### Land Cover Summary\n\n"
+            output += df_main.to_markdown(index=False)
+            output += "\n\n"
 
         if not df_small.empty:
-            markdown += "#### Small Zones (<1%)\n\n"
-            markdown += df_small.to_markdown(index=False)
-        return markdown
+            output += "#### Small Zones (<1%)\n\n"
+            output += df_small.to_markdown(index=False)
+
+        dataset = DataResponse(
+            name="Land Cover Data",
+            source="Open Land Use Map",
+            data_type="dataframe",
+            data=df,
+            show_data=True,
+        )
+        return output, dataset
 
 
 class LandUseTool(GeospatialTool):
@@ -78,6 +88,7 @@ class LandUseTool(GeospatialTool):
         "The result is a summary of land use types, area sizes, and counts."
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
+    response_format: str = "content_and_artifact"
     boundary = box(-20.0, 30.0, 40.0, 70.0)
 
     def _run(self, bounding_box: BoundingBox):
@@ -111,16 +122,24 @@ class LandUseTool(GeospatialTool):
         df_main = df[~df['small']].drop(columns=['small'])
         df_small = df[df['small']].drop(columns=['small'])
         
-        markdown = f"### Map Area: {bbox_area:.2f} {unit}\n\n"
+        output = f"### Map Area: {bbox_area:.2f} {unit}\n\n"
         if not df_main.empty:
-            markdown += "#### Land Use Summary\n\n"
-            markdown += df_main.to_markdown(index=False)
-            markdown += "\n\n"
+            output += "#### Land Use Summary\n\n"
+            output += df_main.to_markdown(index=False)
+            output += "\n\n"
 
         if not df_small.empty:
-            markdown += "#### Small Zones (<1%)\n\n"
-            markdown += df_small.to_markdown(index=False)
-        return markdown
+            output += "#### Small Zones (<1%)\n\n"
+            output += df_small.to_markdown(index=False)
+        
+        dataset = DataResponse(
+            name="Land Use Data",
+            source="Open Land Use Map",
+            data_type="dataframe",
+            data=df,
+            show_data=True,
+        )
+        return output, dataset
     
 
 class ElevationTool(GeospatialTool):
