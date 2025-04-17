@@ -12,7 +12,7 @@ from typing import Optional, Type
 from tools.base import GeospatialTool
 from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
-from utils.tool import get_map_data, get_color_counts
+from utils.tool import get_map_data, get_color_counts, count_components
 from utils.map_service import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_ranges
 
 
@@ -32,23 +32,29 @@ class LandCoverTool(GeospatialTool):
         
         n_pixels = len(image.getdata())
         rgb_counts = get_color_counts(image, LC_rgb_mapping)
+        component_counts = count_components(np.array(image), [v[0] for v in rgb_counts])
         
-        land_uses = [rgb_LC_mapping[rgb] for rgb,_ in rgb_counts]
-        land_ratios = [cnt/n_pixels for _,cnt in rgb_counts]
+        zone_data ={}
+        for rgb, count in rgb_counts:
+            zone_name = rgb_LC_mapping[rgb]
+            zone_data[zone_name] = {
+                "ratio": count / n_pixels,
+                "components": component_counts[rgb]
+            }
 
         bbox_area = bounding_box.area
         unit = "km squared"
         if bbox_area < 1:
             bbox_area *= 1000_000
             unit = "m squared"
-        
+
         zones_data = []
         small_zones_data = []
-        for lu, ratio in zip(land_uses, land_ratios):
-            if ratio < 0.01:
-                small_zones_data.append(f"{lu} - Area: {ratio*bbox_area:.4f} {unit} ({ratio*100:.4f}%)")
+        for zone_name, data in zone_data.items():
+            if data['ratio'] < 0.01:
+                small_zones_data.append(f"{zone_name} - Area: {data['ratio']*bbox_area:.4f} {unit} ({data['ratio']*100:.4f}%) - Zone count: {data['components']}")
             else:
-                zones_data.append(f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)")
+                zones_data.append(f"{zone_name} - Area: {data['ratio']*bbox_area:.2f} {unit} ({data['ratio']*100:.2f}%) - Zone count: {data['components']}")
 
         return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
             + "Land cover information:\n"\
@@ -73,23 +79,29 @@ class LandUseTool(GeospatialTool):
         
         n_pixels = len(image.getdata())
         rgb_counts = get_color_counts(image, LU_rgb_mapping)
+        component_counts = count_components(np.array(image), [v[0] for v in rgb_counts])
         
-        land_uses = [rgb_LU_mapping[rgb] for rgb,_ in rgb_counts]
-        land_ratios = [cnt/n_pixels for _,cnt in rgb_counts]
+        zone_data ={}
+        for rgb, count in rgb_counts:
+            zone_name = rgb_LU_mapping[rgb]
+            zone_data[zone_name] = {
+                "ratio": count / n_pixels,
+                "components": component_counts[rgb]
+            }
 
         bbox_area = bounding_box.area
         unit = "km squared"
         if bbox_area < 1:
             bbox_area *= 1000_000
             unit = "m squared"
-        
+
         zones_data = []
         small_zones_data = []
-        for lu, ratio in zip(land_uses, land_ratios):
-            if ratio < 0.01:
-                small_zones_data.append(f"{lu} - Area: {ratio*bbox_area:.4f} {unit} ({ratio*100:.4f}%)")
+        for zone_name, data in zone_data.items():
+            if data['ratio'] < 0.01:
+                small_zones_data.append(f"{zone_name} - Area: {data['ratio']*bbox_area:.4f} {unit} ({data['ratio']*100:.4f}%) - Zone count: {data['components']}")
             else:
-                zones_data.append(f"{lu} - Area: {ratio*bbox_area:.2f} {unit} ({ratio*100:.2f}%)")
+                zones_data.append(f"{zone_name} - Area: {data['ratio']*bbox_area:.2f} {unit} ({data['ratio']*100:.2f}%) - Zone count: {data['components']}")
 
         return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
             + "Land use information:\n"\
