@@ -14,7 +14,7 @@ from tools.base import GeospatialTool
 from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
-from utils.tool import get_map_data, get_color_counts, count_components
+from utils.tool import get_map_data, get_color_counts, get_mapped_color_counts, detect_components
 from utils.map_service import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_ranges
 
 
@@ -32,10 +32,14 @@ class LandCoverTool(GeospatialTool):
     def _run(self, bounding_box: BoundingBox):
         map_data = get_map_data(bounding_box, "OLU_EU", {"layers": "olu_obj_lc"})
         image = Image.open(BytesIO(map_data))
-        
+        image_data = np.array(image)
         n_pixels = len(image.getdata())
-        rgb_counts = get_color_counts(image, LC_rgb_mapping)
-        component_counts = count_components(np.array(image), [v[0] for v in rgb_counts])
+
+        color_counts = get_color_counts(image_data)
+        matching_colors = [k for k in color_counts.keys() if k in list(LC_rgb_mapping.values())]
+        component_counts = detect_components(image_data, matching_colors, connectivity=8, min_size=9)
+        filtered_colors = [k for k,v in component_counts.items() if v > 0]
+        rgb_counts = get_mapped_color_counts(color_counts, filtered_colors)
         
         bbox_area = bounding_box.area
         unit = "km²"
@@ -94,11 +98,15 @@ class LandUseTool(GeospatialTool):
     def _run(self, bounding_box: BoundingBox):
         map_data = get_map_data(bounding_box, "OLU_EU")
         image = Image.open(BytesIO(map_data))
-        
+        image_data = np.array(image)
         n_pixels = len(image.getdata())
-        rgb_counts = get_color_counts(image, LU_rgb_mapping)
-        component_counts = count_components(np.array(image), [v[0] for v in rgb_counts])
-        
+
+        color_counts = get_color_counts(image_data)
+        matching_colors = [k for k in color_counts.keys() if k in list(LU_rgb_mapping.values())]
+        component_counts = detect_components(image_data, matching_colors, connectivity=8, min_size=9)
+        filtered_colors = [k for k,v in component_counts.items() if v > 0]
+        rgb_counts = get_mapped_color_counts(color_counts, filtered_colors)
+
         bbox_area = bounding_box.area
         unit = "km²"
         if bbox_area < 1:
