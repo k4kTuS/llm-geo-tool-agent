@@ -24,11 +24,19 @@ class CurrentWeatherTool(GeospatialTool):
         "It supports the following weather variables: temperature, humidity, precipitation, wind speed, gusts and direction, soil temperature and moisture"
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
+    response_format: str = "content_and_artifact"
 
     def _run(self, bounding_box: BoundingBox):
         current_data = get_current_data(generate_grid_points(bounding_box))
-        return f"Current weather data for the selected region:\n"\
-            + current_data
+        output = f"Current weather data for the selected region:\n" + current_data
+        data_output = DataResponse(
+            name="Current weather data",
+            source="OpenMeteo",
+            data_type="text",
+            data=current_data,
+            show_data=True
+        )
+        return output, data_output
 
 class WeatherForecastTool(GeospatialTool):
     name: str = "weather_forecast"
