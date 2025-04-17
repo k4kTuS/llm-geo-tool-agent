@@ -77,7 +77,8 @@ LU_rgb_mapping = {
     'Land Areas Not In Other Economic Use': (200,255,200),
     'Water Areas Not In Other Economic Use': (200,200,255),
     'Areas Without Any Specified Planned Land Use': (230,240,240),
-    'Not Known Use': (240,240,240)
+    'Not Known Use': (240,240,240),
+    'Missing Data': (255,255,255),
 }
 rgb_LU_mapping = {v: k for k, v in LU_rgb_mapping.items()}
 
@@ -127,6 +128,7 @@ LC_rgb_mapping = {
     'Estuaries': (166, 255, 230),
     'Sea and ocean': (230, 242, 255),
     'UNCLASSIFIED LAND SURFACE': (200, 200, 200),
-    'UNCLASSIFIED WATER BODIES': (230, 242, 255)
+    'UNCLASSIFIED WATER BODIES': (230, 242, 255),
+    'Missing Data': (255,255,255),
  }
 rgb_LC_mapping = {v: k for k, v in LC_rgb_mapping.items()}
