@@ -96,7 +96,7 @@ class LandUseTool(GeospatialTool):
     boundary = box(-20.0, 30.0, 40.0, 70.0)
 
     def _run(self, bounding_box: BoundingBox):
-        map_data = get_map_data(bounding_box, "OLU_EU")
+        map_data = get_map_data(bounding_box, "OLU_EU", {"layers": "olu_obj_lu"})
         image = Image.open(BytesIO(map_data))
         image_data = np.array(image)
         n_pixels = len(image.getdata())
