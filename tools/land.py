@@ -3,6 +3,7 @@ from typing import Optional, Type
 
 import numpy as np
 from langchain_core.tools import BaseTool
+import pandas as pd
 from PIL import Image
 from pydantic import BaseModel
 from rasterio.io import MemoryFile
@@ -21,7 +22,7 @@ class LandCoverTool(GeospatialTool):
     description: str = (
         "Provides processed land cover data for the bounding box. "
         "Zone types are based on physical surface characteristics."
-        "The result is a summary of land cover types and their respective areas."
+        "The result is a summary of land cover types, area sizes, and counts."
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
     boundary = box(-20.0, 30.0, 40.0, 70.0)
@@ -34,33 +35,39 @@ class LandCoverTool(GeospatialTool):
         rgb_counts = get_color_counts(image, LC_rgb_mapping)
         component_counts = count_components(np.array(image), [v[0] for v in rgb_counts])
         
-        zone_data ={}
+        bbox_area = bounding_box.area
+        unit = "km²"
+        if bbox_area < 1:
+            bbox_area *= 1_000_000
+            unit = "m²"
+
+        zone_data = []
         for rgb, count in rgb_counts:
             zone_name = rgb_LC_mapping[rgb]
-            zone_data[zone_name] = {
-                "ratio": count / n_pixels,
-                "components": component_counts[rgb]
-            }
+            ratio = count / n_pixels
+            area = ratio * bbox_area
 
-        bbox_area = bounding_box.area
-        unit = "km squared"
-        if bbox_area < 1:
-            bbox_area *= 1000_000
-            unit = "m squared"
+            zone_data.append({
+                "Zone Name": zone_name,
+                f"Area ({unit})": round(area, 4),
+                "Area Ratio (%)": round(ratio * 100, 4),
+                "Zone Count": component_counts[rgb],
+                "small": ratio < 0.01
+            })
+        df = pd.DataFrame(zone_data)
+        df_main = df[~df['small']].drop(columns=['small'])
+        df_small = df[df['small']].drop(columns=['small'])
+        
+        markdown = f"### Map Area: {bbox_area:.2f} {unit}\n\n"
+        if not df_main.empty:
+            markdown += "#### Land Cover Summary\n\n"
+            markdown += df_main.to_markdown(index=False)
+            markdown += "\n\n"
 
-        zones_data = []
-        small_zones_data = []
-        for zone_name, data in zone_data.items():
-            if data['ratio'] < 0.01:
-                small_zones_data.append(f"{zone_name} - Area: {data['ratio']*bbox_area:.4f} {unit} ({data['ratio']*100:.4f}%) - Zone count: {data['components']}")
-            else:
-                zones_data.append(f"{zone_name} - Area: {data['ratio']*bbox_area:.2f} {unit} ({data['ratio']*100:.2f}%) - Zone count: {data['components']}")
-
-        return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
-            + "Land cover information:\n"\
-            + "\n".join(zones_data)\
-            + "\n\n" + "Land cover information for small zones:\n"\
-            + "\n".join(small_zones_data)
+        if not df_small.empty:
+            markdown += "#### Small Zones (<1%)\n\n"
+            markdown += df_small.to_markdown(index=False)
+        return markdown
 
 
 class LandUseTool(GeospatialTool):
@@ -68,7 +75,7 @@ class LandUseTool(GeospatialTool):
     description: str = (
         "Provides processed land use data for the bounding box. "
         "Zone types are based on human activities and planning. "
-        "The result is a summary of land use types and their respective areas."
+        "The result is a summary of land use types, area sizes, and counts."
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
     boundary = box(-20.0, 30.0, 40.0, 70.0)
@@ -81,33 +88,39 @@ class LandUseTool(GeospatialTool):
         rgb_counts = get_color_counts(image, LU_rgb_mapping)
         component_counts = count_components(np.array(image), [v[0] for v in rgb_counts])
         
-        zone_data ={}
+        bbox_area = bounding_box.area
+        unit = "km²"
+        if bbox_area < 1:
+            bbox_area *= 1_000_000
+            unit = "m²"
+
+        zone_data = []
         for rgb, count in rgb_counts:
             zone_name = rgb_LU_mapping[rgb]
-            zone_data[zone_name] = {
-                "ratio": count / n_pixels,
-                "components": component_counts[rgb]
-            }
+            ratio = count / n_pixels
+            area = ratio * bbox_area
 
-        bbox_area = bounding_box.area
-        unit = "km squared"
-        if bbox_area < 1:
-            bbox_area *= 1000_000
-            unit = "m squared"
+            zone_data.append({
+                "Zone Name": zone_name,
+                f"Area ({unit})": round(area, 4),
+                "Area Ratio (%)": round(ratio * 100, 4),
+                "Zone Count": component_counts[rgb],
+                "small": ratio < 0.01
+            })
+        df = pd.DataFrame(zone_data)
+        df_main = df[~df['small']].drop(columns=['small'])
+        df_small = df[df['small']].drop(columns=['small'])
+        
+        markdown = f"### Map Area: {bbox_area:.2f} {unit}\n\n"
+        if not df_main.empty:
+            markdown += "#### Land Use Summary\n\n"
+            markdown += df_main.to_markdown(index=False)
+            markdown += "\n\n"
 
-        zones_data = []
-        small_zones_data = []
-        for zone_name, data in zone_data.items():
-            if data['ratio'] < 0.01:
-                small_zones_data.append(f"{zone_name} - Area: {data['ratio']*bbox_area:.4f} {unit} ({data['ratio']*100:.4f}%) - Zone count: {data['components']}")
-            else:
-                zones_data.append(f"{zone_name} - Area: {data['ratio']*bbox_area:.2f} {unit} ({data['ratio']*100:.2f}%) - Zone count: {data['components']}")
-
-        return f"Map Area: {bbox_area:.2f} {unit}\n\n"\
-            + "Land use information:\n"\
-            + "\n".join(zones_data)\
-            + "\n\n" + "Land use information for small zones:\n"\
-            + "\n".join(small_zones_data)
+        if not df_small.empty:
+            markdown += "#### Small Zones (<1%)\n\n"
+            markdown += df_small.to_markdown(index=False)
+        return markdown
     
 
 class ElevationTool(GeospatialTool):
