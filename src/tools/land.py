@@ -15,6 +15,7 @@ from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
 from utils.map_analysis import get_map_data, get_color_counts, get_mapped_color_counts, detect_components, count_remap_ranges
+from utils.sdl_parser import parse_sdl
 from config.wms import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_range_set
 
 
@@ -35,8 +36,14 @@ class LandCoverTool(GeospatialTool):
         image_data = np.array(image)
         n_pixels = len(image.getdata())
 
+        zone_to_rgb, rgb_to_zone = parse_sdl("OLU_EU", "olu_obj_lc")
+        # Fallback color mappings
+        if zone_to_rgb is None:
+            zone_to_rgb = LC_rgb_mapping
+            rgb_to_zone = rgb_LC_mapping
+
         color_counts = get_color_counts(image_data)
-        matching_colors = [k for k in color_counts.keys() if k in list(LC_rgb_mapping.values())]
+        matching_colors = [k for k in color_counts.keys() if k in list(zone_to_rgb.values())]
         component_counts = detect_components(image_data, matching_colors, connectivity=8, min_size=9)
         filtered_colors = [k for k,v in component_counts.items() if v > 0]
         rgb_counts = get_mapped_color_counts(color_counts, filtered_colors)
@@ -49,7 +56,7 @@ class LandCoverTool(GeospatialTool):
 
         zone_data = []
         for rgb, count in rgb_counts:
-            zone_name = rgb_LC_mapping[rgb]
+            zone_name = rgb_to_zone[rgb]
             ratio = count / n_pixels
             area = ratio * bbox_area
 
@@ -101,8 +108,14 @@ class LandUseTool(GeospatialTool):
         image_data = np.array(image)
         n_pixels = len(image.getdata())
 
+        zone_to_rgb, rgb_to_zone = parse_sdl("OLU_EU", "olu_obj_lu")
+        # Fallback color mappings
+        if zone_to_rgb is None:
+            zone_to_rgb = LU_rgb_mapping
+            rgb_to_zone = rgb_LU_mapping
+
         color_counts = get_color_counts(image_data)
-        matching_colors = [k for k in color_counts.keys() if k in list(LU_rgb_mapping.values())]
+        matching_colors = [k for k in color_counts.keys() if k in list(zone_to_rgb.values())]
         component_counts = detect_components(image_data, matching_colors, connectivity=8, min_size=9)
         filtered_colors = [k for k,v in component_counts.items() if v > 0]
         rgb_counts = get_mapped_color_counts(color_counts, filtered_colors)
@@ -115,7 +128,7 @@ class LandUseTool(GeospatialTool):
 
         zone_data = []
         for rgb, count in rgb_counts:
-            zone_name = rgb_LU_mapping[rgb]
+            zone_name = rgb_to_zone[rgb]
             ratio = count / n_pixels
             area = ratio * bbox_area
 
