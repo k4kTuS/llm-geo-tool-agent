@@ -6,6 +6,7 @@ from shapely.geometry import box
 from scipy.spatial import KDTree
 
 from schemas.geometry import BoundingBox, PointMarker
+from schemas.remapping import RangeMappingSet
 from config.wms import wms_config
 
 def detect_components(image_array, colors, connectivity=8, min_size=9):
@@ -102,3 +103,21 @@ def transform_snap_bbox(bbox: BoundingBox, source_crs: str, target_crs: str, x_g
     y_grid_cells = int((bounds_target_snapped[3] - bounds_target_snapped[1]) / y_grid_size)
 
     return bbox_snapped, (x_grid_cells, y_grid_cells)
+
+def count_remap_ranges(image_array: np.ndarray, range_mapping_set: RangeMappingSet) -> dict[str, int]:
+    """
+    Counts the number of pixels in each range defined in the RangeMappingSet.
+
+    Args:
+        image_array (np.ndarray): The input image as a NumPy array.
+        range_mapping_set (RangeMappingSet): The set of range mappings.
+    Returns:
+        dict[str, int]: A dictionary mapping each range label to the count of pixels in that range.
+        The keys are formatted as "label (min-max m)".
+    """
+    zone_counts = {}
+    for range_mapping in range_mapping_set.ranges:
+        zone_label = f"{range_mapping.label} ({range_mapping.min}-{range_mapping.max} {range_mapping_set.unit})"
+        count = np.sum((image_array >= range_mapping.min) & (image_array < range_mapping.max))
+        zone_counts[zone_label] = int(count)
+    return zone_counts

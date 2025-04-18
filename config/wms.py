@@ -1,6 +1,6 @@
 import datetime
-
 import numpy as np
+from schemas.remapping import RangeMapping, RangeMappingSet
 
 wms_config={ 
     'climate_era5_temperature_last_5yrs_month_avg':
@@ -29,18 +29,6 @@ wms_config={
         'alternatives':{}
         },
 }
-
-elevation_ranges = [
-    (-500, 0, "Below Sea Level"),
-    (0, 200, "Lowlands"),
-    (200, 500, "Hills & Low Plateaus"),
-    (500, 1000, "High Hills & Plateaus"),
-    (1000, 2000, "Low Mountains"),
-    (2000, 3000, "Mid Mountains"),
-    (3000, 4500, "High Mountains"),
-    (4500, 6000, "Alpine/Glacial Zone"),
-    (6000, np.inf, "Extreme High Peaks")
-]
 
 LU_rgb_mapping = {
     'Primary Production': (180,230,110),
@@ -125,3 +113,19 @@ LC_rgb_mapping = {
     'Missing Data': (255,255,255),
  }
 rgb_LC_mapping = {v: k for k, v in LC_rgb_mapping.items()}
+
+elevation_range_set = RangeMappingSet(
+    name="elevation",
+    ranges=[
+        RangeMapping(min=-500, max=0, label="Below Sea Level"),
+        RangeMapping(min=0, max=200, label="Lowlands"),
+        RangeMapping(min=200, max=500, label="Hills & Low Plateaus"),
+        RangeMapping(min=500, max=1000, label="High Hills & Plateaus"),
+        RangeMapping(min=1000, max=2000, label="Low Mountains"),
+        RangeMapping(min=2000, max=3000, label="Mid Mountains"),
+        RangeMapping(min=3000, max=4500, label="High Mountains"),
+        RangeMapping(min=4500, max=6000, label="Alpine/Glacial Zone"),
+        RangeMapping(min=6000, max=np.inf, label="Extreme High Peaks"),
+    ],
+    unit="meters"
+)

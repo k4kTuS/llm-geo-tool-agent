@@ -14,8 +14,8 @@ from tools.base import GeospatialTool
 from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
-from utils.tool import get_map_data, get_color_counts, get_mapped_color_counts, detect_components
-from config.wms import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_ranges
+from utils.tool import get_map_data, get_color_counts, get_mapped_color_counts, detect_components, count_remap_ranges
+from config.wms import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_range_set
 
 
 class LandCoverTool(GeospatialTool):
@@ -173,7 +173,7 @@ class ElevationTool(GeospatialTool):
                     "std": raster.std(),
                 }
 
-        zones_data = count_elevation_zones(raster)
+        zones_data = count_remap_ranges(raster, elevation_range_set)
         n_pixels = len(raster.flatten())
         bbox_area = bounding_box.area
         zones_ratios = {k: v / n_pixels for k, v in zones_data.items()}
@@ -187,13 +187,3 @@ class ElevationTool(GeospatialTool):
             "### Elevation Zones Coverage:\n"
             + "\n".join([f"{k}: {v * bbox_area:.2f} km2 ({v*100:.2f}%)" for k, v in zones_ratios.items() if v != 0])
         )
-
-def count_elevation_zones(elevation_array):
-    zone_counts = {}
-    # Count pixels in each elevation range
-    for min_val, max_val, zone_name in elevation_ranges:
-        zone_label = f"{zone_name} ({min_val}-{max_val} m)"
-        count = np.sum((elevation_array >= min_val) & (elevation_array < max_val))
-        zone_counts[zone_label] = count
-
-    return zone_counts
