@@ -1,11 +1,10 @@
 import xml.etree.ElementTree as ET
 import re
 import requests
-from typing import TypedDict
 
 from config.wms import wms_config
 
-def parse_sdl(endpoint: str, layer: str) -> tuple[dict, dict] | None:
+def parse_sld(endpoint: str, layer: str) -> tuple[dict, dict] | None:
     try:
         api_setup = wms_config[endpoint]
         response = requests.get(

@@ -15,7 +15,7 @@ from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
 from utils.map_analysis import get_map_data, get_color_counts, get_mapped_color_counts, detect_components, count_remap_ranges
-from utils.sdl_parser import parse_sdl
+from utils.sld_parser import parse_sld
 from config.wms import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_range_set
 
 
@@ -36,7 +36,7 @@ class LandCoverTool(GeospatialTool):
         image_data = np.array(image)
         n_pixels = len(image.getdata())
 
-        zone_to_rgb, rgb_to_zone = parse_sdl("OLU_EU", "olu_obj_lc")
+        zone_to_rgb, rgb_to_zone = parse_sld("OLU_EU", "olu_obj_lc")
         # Fallback color mappings
         if zone_to_rgb is None:
             zone_to_rgb = LC_rgb_mapping
@@ -108,7 +108,7 @@ class LandUseTool(GeospatialTool):
         image_data = np.array(image)
         n_pixels = len(image.getdata())
 
-        zone_to_rgb, rgb_to_zone = parse_sdl("OLU_EU", "olu_obj_lu")
+        zone_to_rgb, rgb_to_zone = parse_sld("OLU_EU", "olu_obj_lu")
         # Fallback color mappings
         if zone_to_rgb is None:
             zone_to_rgb = LU_rgb_mapping
