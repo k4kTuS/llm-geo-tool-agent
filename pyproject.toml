@@ -1,0 +1,50 @@
+[project]
+name = "geo_assistant"
+version = "0.0.1"
+description = "Chat assistant with geospatial capabilities"
+authors = [
+    { name = "Matus Botek"}
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "catboost",
+    "datetime",
+    "folium",
+    "geopandas",
+    "langchain",
+    "langchain-community",
+    "langchain-groq",
+    "langchain-ollama",
+    "langchain-openai",
+    "langgraph",
+    "langsmith",
+    "markdown",
+    "numpy",
+    "pandas",
+    "Pillow",
+    "pyproj",
+    "python-dotenv",
+    "rasterio",
+    "requests",
+    "scikit-learn",
+    "scipy",
+    "shapely",
+    "streamlit",
+    "streamlit_folium",
+    "typing-extensions",
+    "openmeteo_requests",
+    "tabulate",
+    "sentence_transformers",
+    "opencv-python-headless",
+]
+
+[project.optional-dependencies]
+dev = ["jupyter", "ipykernel"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

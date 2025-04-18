@@ -7,3 +7,7 @@ __pycache__
 __pycache__/*
 secrets.toml
 temp/*
+.vscode/
+*.egg-info/
+build/
+dist/
