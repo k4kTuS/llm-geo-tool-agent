@@ -6,7 +6,7 @@ authors = [
     { name = "Matus Botek"}
 ]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9,<4.0"
 dependencies = [
     "catboost",
     "datetime",
