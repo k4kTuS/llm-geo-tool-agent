@@ -1,10 +1,12 @@
 import cv2
 import numpy as np
 import requests
+from pyproj import Transformer
+from shapely.geometry import box
 from scipy.spatial import KDTree
 
 from schemas.geometry import BoundingBox, PointMarker
-from config.wms import *
+from config.wms import wms_config
 
 def detect_components(image_array, colors, connectivity=8, min_size=9):
     """
@@ -71,3 +73,32 @@ def get_map_data(bounding_box: BoundingBox, endpoint, alt_params={}):
         stream=True
     )
     return response.content
+
+def transform_snap_bbox(bbox: BoundingBox, source_crs: str, target_crs: str, x_grid_size: int, y_grid_size: int):
+    """
+    Given a bounding box, source and target CRS, and grid cell sizes in the target CRS,
+    this function snaps the bounds of the bounding box to the nearest grid cells and calculates
+    the number of grid cells in each direction inside the bounding box.
+
+    Args:
+        bbox (BoundingBox): The bounding box to snap.
+        source_crs (str): The source CRS of the bounding box.
+        target_crs (str): The target CRS to which the bounding box should be transformed.
+        x_grid_size (int): The size of the grid cells in the x-direction in the target CRS.
+        y_grid_size (int): The size of the grid cells in the y-direction in the target CRS.
+    Returns:
+        tuple: A tuple containing the snapped bounding box and the number of grid cells in each direction.
+    """
+    transformer = Transformer.from_crs(source_crs, target_crs, always_xy=True)
+    bounds_target = transformer.transform_bounds(*bbox.bounds_lonlat())
+    bounds_target_snapped = (
+        np.floor(bounds_target[0] / x_grid_size) * x_grid_size,
+        np.floor(bounds_target[1] / y_grid_size) * y_grid_size,
+        np.ceil(bounds_target[2] / x_grid_size) * x_grid_size,
+        np.ceil(bounds_target[3] / y_grid_size) * y_grid_size
+    )
+    bbox_snapped = BoundingBox(wkt=box(*bounds_target_snapped).wkt)
+    x_grid_cells = int((bounds_target_snapped[2] - bounds_target_snapped[0]) / x_grid_size)
+    y_grid_cells = int((bounds_target_snapped[3] - bounds_target_snapped[1]) / y_grid_size)
+
+    return bbox_snapped, (x_grid_cells, y_grid_cells)
