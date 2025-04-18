@@ -12,7 +12,7 @@ from tools.input_schemas.poi import PoiInput
 from schemas.data import DataResponse
 from schemas.geometry import BoundingBox
 from utils.encoder import get_encoder
-from utils.map_service import wfs_config
+from config.wfs import wfs_config
 from sentence_transformers.util import cos_sim
 
 RELEVANCE_THRESHOLD = 0.5

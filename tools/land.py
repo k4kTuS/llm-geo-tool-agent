@@ -15,7 +15,7 @@ from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
 from utils.tool import get_map_data, get_color_counts, get_mapped_color_counts, detect_components
-from utils.map_service import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_ranges
+from config.wms import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_ranges
 
 
 class LandCoverTool(GeospatialTool):

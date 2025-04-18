@@ -4,7 +4,7 @@ import requests
 from scipy.spatial import KDTree
 
 from schemas.geometry import BoundingBox, PointMarker
-from utils.map_service import *
+from config.wms import *
 
 def detect_components(image_array, colors, connectivity=8, min_size=9):
     """
@@ -64,7 +64,7 @@ def find_square_for_marker(square_list, point_marker: PointMarker):
     return None
 
 def get_map_data(bounding_box: BoundingBox, endpoint, alt_params={}):
-    api_setup = map_config[endpoint]
+    api_setup = wms_config[endpoint]
     response = requests.get(
         api_setup["wms_root_url"],
         params={**api_setup["data"], **{"bbox": bounding_box.to_string_latlon(), "height":"1500", "width":"1500"}, **alt_params},

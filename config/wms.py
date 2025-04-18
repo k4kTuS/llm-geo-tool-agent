@@ -2,7 +2,7 @@ import datetime
 
 import numpy as np
 
-map_config={ 
+wms_config={ 
     'climate_era5_temperature_last_5yrs_month_avg':
         {'wms_root_url':'https://olu.lesprojekt.cz/cgi-bin/mapserv', 
         'data':{'map':'/data/maps/thematic_maps.map', 'service':'WMS', 'version':'1.3.0', 'request':'GetMap', 'bbox':'49.3,12.7,49.4,12.8', 'crs':'EPSG:4326', 'width':'1562', 'height':'680', 'layers':'t2m_2020', 'TIME':'20200101','styles':'', 'format':'gtiff' }, 
@@ -28,13 +28,6 @@ map_config={
         'data':{'map':'/home/dima/maps/foodie/dem.map', 'service':'WMS', 'version':'1.3.0', 'request':'GetMap', 'bbox':'49.3,12.7,49.4,12.8', 'crs':'EPSG:4326', 'width':'1562', 'height':'680', 'layers':'DEM_ORIG', 'styles':'', 'format':'gtiff' }, 
         'alternatives':{}
         },
-}
-
-wfs_config={
-    'SPOI':
-        {'wfs_root_url':'https://gis.lesprojekt.cz/cgi-bin/mapserv',
-        'data':{'map':'/home/dima/maps/spoiky.map', 'service':'WFS', 'version':'1.1.0', 'request':'GetFeature', 'srsname':'EPSG:4326', 'typename':'spoi', 'outputformat':'geojson'}
-        }
 }
 
 elevation_ranges = [
