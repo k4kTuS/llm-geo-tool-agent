@@ -10,7 +10,7 @@ from shapely import box
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
-from project_paths import DATA_DIR
+from config.project_paths import DATA_DIR
 from tools.base import GeospatialTool
 from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
