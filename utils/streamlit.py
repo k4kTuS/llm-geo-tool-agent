@@ -3,8 +3,8 @@ import re
 import time
 import uuid
 
+import markdown
 import streamlit as st
-
 from langchain_core.messages import AnyMessage, AIMessage, ToolMessage
 from langsmith import Client
 from shapely.geometry import shape
@@ -12,6 +12,28 @@ from streamlit.components.v1 import html
 
 from utils.agent import get_chat_history, DEFAULT_LLM
 from schemas.data import DataResponse
+
+def initialize_custom_css():
+        st.markdown("""
+<style>
+.scroll-x-container {
+    overflow-x: auto;
+    padding: 10px 0;
+}
+.scroll-x-inner {
+    display: flex;
+    gap: 1rem;
+}
+.scroll-box {
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid #ddd;
+    min-width: 300px;
+    max-width: 70%;
+    flex-shrink: 0;
+}
+</style>
+    """, unsafe_allow_html=True)
 
 def initialize_session_state():
     if "show_tool_calls" not in st.session_state:
@@ -185,32 +207,21 @@ def write_comparison_messages(main_msg, alt_msg):
                 disabled=st.session_state.inputs_disabled
             )
         else:
-            col1, col2 = st.columns(2)
-            col1.html(
-                '''
-                <div style="
-                    background-color: #f0f2f6; 
-                    padding: 10px; 
-                    border-radius: 10px;
-                    border: 2px solid #ddd;
-                ">
-                <strong>Option A</strong>
-                '''
-            )
-            col1.markdown(msg_A.content.replace("\n", "  \n"))
-
-            col2.html(
-                '''
-                <div style="
-                    background-color: #f0f2f6; 
-                    padding: 10px; 
-                    border-radius: 10px;
-                    border: 2px solid #ddd;
-                ">
-                <strong>Option B</strong>
-                '''
-            )
-            col2.markdown(msg_B.content.replace("\n", "  \n"))
+            html_content = f"""
+            <div class="scroll-x-container">
+                <div class="scroll-x-inner">
+                    <div class="scroll-box">
+                        <strong>Option A</strong><br><br>
+                        {markdown.markdown(msg_A.content)}
+                    </div>
+                    <div class="scroll-box">
+                        <strong>Option B</strong><br><br>
+                        {markdown.markdown(msg_B.content)}
+                    </div>
+                </div>
+            </div>
+            """
+            st.write(html_content, unsafe_allow_html=True)
 
             # Feedback section
             # TODO - connect feedback to LangSmith

@@ -9,6 +9,7 @@ from agents import get_agent, BaseAgent
 from visualizations.drawmap import DrawMap
 from utils.streamlit import (
     add_pill_to_chat_input,
+    initialize_custom_css,
     initialize_session_state,
     parse_drawing_geometry,
     write_conversation,
@@ -27,6 +28,7 @@ st.set_page_config(
     layout="wide" if "user" in st.session_state else "centered",
     initial_sidebar_state="auto",
 )
+initialize_custom_css()
 
 def disable_inputs():
     st.session_state.inputs_disabled = True
