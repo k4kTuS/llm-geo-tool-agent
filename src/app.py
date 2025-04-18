@@ -6,6 +6,7 @@ import streamlit as st
 from streamlit_folium import st_folium
 
 from agents import get_agent, BaseAgent
+from config.project_paths import RESOURCES_DIR
 from visualizations.drawmap import DrawMap
 from utils.streamlit import (
     add_pill_to_chat_input,
@@ -98,7 +99,7 @@ def show_chat_app():
         st.session_state.point_marker_wkt = parse_drawing_geometry(map_data, "Point")
 
     with st.expander("Click to select some example questions", icon="🔍"):
-        examples = [line.rstrip() for line in open('resources/example_questions.txt')]
+        examples = [line.rstrip() for line in open(f'{RESOURCES_DIR}/example_questions.txt')]
         selected = st.pills(label="What do you want to talk about?", options=examples, disabled=st.session_state.inputs_disabled)
         add_pill_to_chat_input(selected)
 
