@@ -11,7 +11,7 @@ from tools.base import GeospatialTool
 from tools.input_schemas.base import BaseGeomInput
 from schemas.data import DataResponse
 from schemas.geometry import BoundingBox
-from utils.tool import get_map_data, transform_snap_bbox
+from utils.map_analysis import get_map_data, transform_snap_bbox
 
 EUROSTAT_GRID_SIZE = 1000
 

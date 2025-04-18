@@ -8,7 +8,7 @@ from models import hotels_model
 from tools.base import GeospatialTool
 from tools.input_schemas.hotel import HotelSuitabilitySchema
 from schemas.geometry import PointMarker
-from utils.tool import find_square_for_marker
+from utils.map_analysis import find_square_for_marker
 
 
 class HotelSuitabilityTool(GeospatialTool):
