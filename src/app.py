@@ -22,7 +22,6 @@ from utils.agent import clear_chat_history, LLM_OPTIONS
 load_dotenv()
 initialize_session_state()
 
-st.session_state.user = "matus"
 st.set_page_config(
     page_title="GeoChat Assistant",
     page_icon="🌿",
@@ -66,10 +65,11 @@ def show_chat_app():
             )
 
             st.warning("Changing the LLM model will clear the chat history.")
+            llm_selection_locked = st.secrets.get("LOCK_LLM_SELECTION", False)
             selected_llm = st.selectbox(
-                label="LLM model",
+                label="LLM model - Selection locked" if llm_selection_locked else "LLM model",
                 options=LLM_OPTIONS,
-                disabled=st.session_state.inputs_disabled,
+                disabled=True if llm_selection_locked else st.session_state.inputs_disabled,
             )
             if selected_llm != st.session_state.llm_choice:
                 st.toast(f"Changed LLM model to {selected_llm}.", icon="🔄")

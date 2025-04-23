@@ -46,6 +46,8 @@ def initialize_session_state():
         st.session_state.thread_id = uuid.uuid4()
     if "llm_choice" not in st.session_state:
         st.session_state.llm_choice = DEFAULT_LLM
+    if st.secrets.get("DEV_MODE", False):
+        st.session_state.user = "dev_user"
 
 def parse_drawing_geometry(map_data: dict, drawing_type: str) -> str:
     if not map_data["all_drawings"]:
