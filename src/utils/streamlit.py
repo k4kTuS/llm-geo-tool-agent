@@ -214,11 +214,11 @@ def write_comparison_messages(main_msg, alt_msg):
                 <div class="scroll-x-inner">
                     <div class="scroll-box">
                         <strong>Option A</strong><br><br>
-                        {markdown.markdown(msg_A.content)}
+                        {markdown.markdown(msg_A.content, extensions=["tables"])}
                     </div>
                     <div class="scroll-box">
                         <strong>Option B</strong><br><br>
-                        {markdown.markdown(msg_B.content)}
+                        {markdown.markdown(msg_B.content, extensions=["tables"])}
                     </div>
                 </div>
             </div>
