@@ -47,7 +47,7 @@ class GeoAgent(BaseAgent):
 class ComparisonGeoAgent(BaseAgent):
     def run(self, prompt: str, bounding_box: BoundingBox, marker: PointMarker | None, config: dict):
         bbox_text = f"The bounding box is defined by the following coordinates (lat1, lon1, lat2, lon2):\n" \
-        f"{bounding_box.to_string_latlon()}\n"
+        f"{bounding_box.to_string_yx()}\n"
 
         input = {
             "messages": [HumanMessage(content=prompt)],
@@ -77,7 +77,7 @@ class ComparisonGeoAgent(BaseAgent):
 class AgentToolSelector(BaseAgent):
     def run(self, prompt: str, bounding_box: BoundingBox, marker: PointMarker | None, config: dict):
         bbox_text = f"The bounding box is defined by the following coordinates (lat1, lon1, lat2, lon2):\n" \
-        f"{bounding_box.to_string_latlon()}\n"
+        f"{bounding_box.to_string_yx()}\n"
 
         input = {
             "messages": [HumanMessage(content=prompt)],

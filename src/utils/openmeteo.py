@@ -35,7 +35,7 @@ def generate_grid_points(bounding_box: BoundingBox) -> list[(float, float)]:
             print("Selected icon model:", _)
             config = v
             break
-    lat_min, lon_min, lat_max, lon_max = bounding_box.bounds_latlon()
+    lat_min, lon_min, lat_max, lon_max = bounding_box.bounds_yx()
     resolution = config['resolution']
     eps = 1e-6
 

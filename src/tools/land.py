@@ -14,10 +14,18 @@ from tools.base import GeospatialTool
 from tools.input_schemas.base import BaseGeomInput
 from schemas.geometry import BoundingBox
 from schemas.data import DataResponse
-from utils.map_analysis import get_map_data, get_color_counts, get_mapped_color_counts, detect_components, count_remap_ranges
+from utils.map_analysis import (
+    get_map_data,
+    get_color_counts,
+    get_mapped_color_counts,
+    detect_components,
+    count_remap_ranges,
+    transform_snap_bbox
+)
 from utils.sld_parser import parse_sld
 from config.wms import LC_rgb_mapping, LU_rgb_mapping, rgb_LC_mapping, rgb_LU_mapping, elevation_range_set
 
+DEM_GRID_SIZE = 30
 
 class LandCoverTool(GeospatialTool):
     name: str = "land_cover_tool"
@@ -170,7 +178,20 @@ class ElevationTool(GeospatialTool):
     boundary = box(11.86, 48.52, 19.02, 51.11)
 
     def _run(self, bounding_box: BoundingBox):
-        map_data = get_map_data(bounding_box, "DEM_MASL")
+        bbox_snapped, dimensions = transform_snap_bbox(
+            bounding_box,
+            target_crs="EPSG:3857",
+            x_grid_size=DEM_GRID_SIZE,
+            y_grid_size=DEM_GRID_SIZE
+        )
+        map_data = get_map_data(
+            bbox_snapped,
+            "DEM_MASL",
+            {
+                "width": dimensions[0],
+                "height": dimensions[1]
+            }
+        )
         
         with MemoryFile(map_data) as memfile:
             with memfile.open() as dataset:

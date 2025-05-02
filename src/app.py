@@ -110,8 +110,8 @@ def show_chat_app():
             st.toast("You must have one area of interest selected at a time.", icon="🗺️")
             time.sleep(2)
         else:
-            bbox = BoundingBox(wkt=st.session_state.selected_area_wkt)
-            point_marker = PointMarker(wkt=st.session_state.point_marker_wkt) if st.session_state.point_marker_wkt else None
+            bbox = BoundingBox(wkt=st.session_state.selected_area_wkt, crs="EPSG:4326")
+            point_marker = PointMarker(wkt=st.session_state.point_marker_wkt, crs="EPSG:4326") if st.session_state.point_marker_wkt else None
             
             run_id = uuid.uuid4() # For langsmith
             config = {

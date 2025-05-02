@@ -26,7 +26,6 @@ class EurostatPopulationTool(GeospatialTool):
         # Snap the bounding box to the nearest grid cells and obtain number of grid cells for width and height
         bbox_snapped, dimensions = transform_snap_bbox(
             bounding_box,
-            source_crs="EPSG:4326",
             target_crs="EPSG:3035",
             x_grid_size=EUROSTAT_GRID_SIZE,
             y_grid_size=EUROSTAT_GRID_SIZE
@@ -43,7 +42,6 @@ class EurostatPopulationTool(GeospatialTool):
             "EUROSTAT_2021",
             {
                 "layers": "total_population_eurostat_griddata_2021",
-                "crs": "EPSG:3035",
                 "width": dimensions[0],
                 "height": dimensions[1]
             }
@@ -53,7 +51,6 @@ class EurostatPopulationTool(GeospatialTool):
             "EUROSTAT_2021",
             {
                 "layers": "employed_population_eurostat_griddata_2021",
-                "crs": "EPSG:3035",
                 "width": dimensions[0],
                 "height": dimensions[1]
             }

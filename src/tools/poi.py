@@ -78,7 +78,7 @@ class PoiTool(GeospatialTool):
 def get_poi_data(bounding_box: BoundingBox) -> gpd.GeoDataFrame:
     response = requests.get(
         wfs_config["SPOI"]["wfs_root_url"],
-        params={**wfs_config["SPOI"]["data"], **{"bbox": bounding_box.to_string_lonlat()}},
+        params={**wfs_config["SPOI"]["data"], **{"bbox": bounding_box.to_string()}},
         stream=True
     )
     data = response.json()

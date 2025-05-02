@@ -8,8 +8,13 @@ class GeospatialToolFilter(BaseToolFilter):
             return tools
 
         filtered = []
+
+        if bounding_box.crs != "EPSG:4326":
+            bounding_box = bounding_box.to_crs("EPSG:4326")
+        geom = bounding_box.geom
+
         for tool in tools:
-            if tool.is_applicable(bounding_box.geom):
+            if tool.is_applicable(geom):
                 filtered.append(tool)
             else:
                 print(f"Tool {tool.name} is not applicable for the geometry")
