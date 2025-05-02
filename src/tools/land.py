@@ -85,7 +85,7 @@ class LandCoverTool(GeospatialTool):
             name="Land Cover Data",
             source="Open Land Use Map",
             data_type="dataframe",
-            data=df,
+            data=df.drop(columns=['small']),
             show_data=True,
         )
         return output, dataset
@@ -157,7 +157,7 @@ class LandUseTool(GeospatialTool):
             name="Land Use Data",
             source="Open Land Use Map",
             data_type="dataframe",
-            data=df,
+            data=df.drop(columns=['small']),
             show_data=True,
         )
         return output, dataset
@@ -195,7 +195,7 @@ class ElevationTool(GeospatialTool):
             f"### Elevation Statisticts:\n"
             f"Average elevation: {stats["mean"]:.2f} meters\n"
             f"Max elevation: {stats["max"]:.2f} meters\n"
-            f"Min elevation: {stats["mean"]:.2f} meters\n"
+            f"Min elevation: {stats["min"]:.2f} meters\n"
             f"Standard deviation: {stats["std"]:.2f} meters\n"
             "### Elevation Zones Coverage:\n"
             + "\n".join([f"{k}: {v * bbox_area:.2f} km2 ({v*100:.2f}%)" for k, v in zones_ratios.items() if v != 0])
