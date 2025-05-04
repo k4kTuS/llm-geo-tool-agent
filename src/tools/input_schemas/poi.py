@@ -12,5 +12,11 @@ class PoiInput(BaseModel):
     )
     categories: Optional[list[str]] = Field(
         default=None,
-        description="Optional list of OSM keys for points of interest to search for."
+        description="Optional list of category keys for points of interest to search for."
+    )
+    relevance_threshold: Optional[float] = Field(
+        description=(
+        "Similarity threshold between input categories and categories of retrieved points of interest, ranging from 0.7 to 1.0. "
+        "Use it to filter out less relevant categories."
+        )
     )

@@ -15,23 +15,26 @@ from utils.encoder import get_encoder
 from config.wfs import wfs_config
 from sentence_transformers.util import cos_sim
 
-RELEVANCE_THRESHOLD = 0.5
-
 class PoiTool(GeospatialTool):
     name: str = "get_points_of_interest"
     description: str = (
-        "Provides processed data about points of interest for the bounding box. "
-        "It covers the western part of Czech Republic."
+        "Provides processed data about points of interest (POIs) for the bounding box. "
+        "Only a subset of features from OpenStreetMap is available. "
+        "Accepts an optional list of categories and a relevance threshold for fuzzy matching. "
+        "Geospatial coverage is only for the western part of Czech Republic."
     )
     args_schema: Optional[Type[BaseModel]] = PoiInput
     response_format: str = "content_and_artifact"
     boundary = box(12.4, 48.9, 14.5, 50.15)
 
-    def _run(self, bounding_box: BoundingBox, categories: Optional[list[str]] = None):
+    def _run(self, bounding_box: BoundingBox, categories: Optional[list[str]] = None, relevance_threshold: Optional[float] = None):
+        if relevance_threshold is None:
+            relevance_threshold = 0.8
+
         gpd_poi = get_poi_data(bounding_box)
         if gpd_poi.empty:
-            return "No points of interest found in the area.", None
-        category_counts = gpd_poi.groupby("category").agg(poi_count = ("label", "count")).sort_values(by="poi_count", ascending=False)
+            return "No points of interest from the available subset exist in the area.", None
+        category_counts = gpd_poi.groupby("category").agg(count = ("label", "count")).sort_values(by="count", ascending=False)
         
         if not categories:
             output =  (
@@ -56,12 +59,12 @@ class PoiTool(GeospatialTool):
         similarity = cos_sim(query_cat_embeddings, poi_cat_embeddings)
         relevant_poi_cats = []
         for i, poi_cat in enumerate(poi_categories):
-            if max(similarity[:, i]) > RELEVANCE_THRESHOLD:
+            if max(similarity[:, i]) > relevance_threshold:
                 relevant_poi_cats.append(poi_cat)
         
         res_gdf = category_counts[category_counts.index.isin(relevant_poi_cats)]
         if res_gdf.empty:
-            return "No relevant points of interest found in the area.", None
+            return f"Retrieved {len(gpd_poi)} points of interest, but none are above the {relevance_threshold} relevance threshold you defined. You can consider retrying with lower threshold.", None
         output = (
             "### Filtered points of interest:\n"
             + res_gdf.to_markdown()
