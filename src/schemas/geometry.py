@@ -3,7 +3,7 @@ from typing import ClassVar
 
 import geopandas as gpd
 from shapely.geometry import Polygon, Point, box
-from shapely.errors import WKTReadingError
+from shapely.errors import ShapelyError
 from shapely.wkt import loads
 import pyproj
 
@@ -38,7 +38,7 @@ class GeoModel(BaseModel):
             if not isinstance(geom, expected_type):
                 raise ValueError(f"WKT must represent a {expected_type.__name__}")
             return value
-        except WKTReadingError:
+        except ShapelyError:
             raise ValueError("Invalid WKT string")
     
     def is_geograpgic(self):
