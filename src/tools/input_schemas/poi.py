@@ -20,3 +20,13 @@ class PoiInput(BaseModel):
         "Use it to filter out less relevant categories."
         )
     )
+
+class OSMInput(BaseModel):
+    bounding_box: Annotated[BoundingBox, InjectedState("bounding_box")] = Field(
+        ...,
+        description="Map bounding box coordinates."
+    )
+    query: str = Field(
+        ...,
+        description="A complete natural language sentence describing what to find."
+    )

@@ -37,6 +37,7 @@ dependencies = [
     "tabulate",
     "sentence_transformers",
     "opencv-python-headless",
+    "osmnx"
 ]
 
 [project.optional-dependencies]

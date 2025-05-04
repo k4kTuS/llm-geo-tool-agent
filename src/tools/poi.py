@@ -1,27 +1,79 @@
+import json
 from typing import Optional, Type
 
+import numpy as np
 import pandas as pd
+import pickle
 import geopandas as gpd
+import osmnx as ox
 import requests
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 from shapely.geometry import box, shape
 
 from tools.base import GeospatialTool
-from tools.input_schemas.poi import PoiInput
+from tools.input_schemas.poi import PoiInput, OSMInput
 from schemas.data import DataResponse
 from schemas.geometry import BoundingBox
 from utils.encoder import get_encoder
 from config.wfs import wfs_config
 from sentence_transformers.util import cos_sim
+from config.project_paths import DATA_DIR
+
+class OSMTool(GeospatialTool):
+    name: str = "get_open_street_map_features"
+    description: str = (
+        "Retrieves points of interest from OpenStreetMap using the user's query. "
+        "The input query determines what features are retrieved based on similarity. "
+        "Query input must be a sentence, not a tag or a list of tags."
+    )
+    args_schema: Optional[Type[BaseModel]] = OSMInput
+
+    def _run(self, bounding_box: BoundingBox, query: str, topk: int = 20):
+        # Load prepared descriptions and pre-computed embeddings with metadata
+        with open(DATA_DIR / "osm_tag_descriptions.json", "r") as f:
+            tag_descriptions = json.load(f)
+        with open(DATA_DIR / "osm_tag_embeddings.pkl", "rb") as f:
+            tag_embeddings = pickle.load(f)
+        # Compute similarity scores and select topk relevant tags
+        encoder = get_encoder()
+        query_embedding = encoder.encode(
+            sentences=query,
+            prompt="query: ",
+            convert_to_numpy=True
+        )
+        similarities = cos_sim(query_embedding, np.array([tag['embedding'] for tag in tag_embeddings]))[0]
+        top_indices = similarities.cpu().numpy().argsort()[::-1][:topk]
+        top_tags = [tag_embeddings[i] for i in top_indices]
+        # Build tags dict compatible with osmnx querying
+        tags = {}
+        for v in top_tags:
+            if v['key'] not in tags:
+                tags[v['key']] = []
+            tags[v['key']].append(v['value'])
+        # Retrieve features based on tags
+        gdf = ox.features.features_from_bbox(bounding_box.bounds(), tags=tags)
+        if gdf.empty:
+            return "Found no features from OpenStreetMap relevant to the query."
+        # Build textual summary
+        summary = f"Retrieved {len(gdf)} unique features. Below are their characteristics (the categories overlap):"
+
+        for key in tags:
+            if key in gdf.columns:
+                value_counts = gdf[key].value_counts().reset_index()
+                value_counts['description'] = value_counts[key].apply(lambda x: tag_descriptions.get(f"{key}={x}", "No description available."))
+                summary = summary + f"\n### {key} tag data:\n"
+                summary = summary + value_counts.to_markdown(index=False)
+        return summary
 
 class PoiTool(GeospatialTool):
     name: str = "get_points_of_interest"
     description: str = (
-        "Provides processed data about points of interest (POIs) for the bounding box. "
-        "Only a subset of features from OpenStreetMap is available. "
+        "Retrieves processed data about points of interest for the bounding box. "
+        "Provides only a subset of features from OpenStreetMap. "
         "Accepts an optional list of categories and a relevance threshold for fuzzy matching. "
-        "Geospatial coverage is only for the western part of Czech Republic."
+        "Has the geospatial coverage for the western part of Czech Republic. "
+        "Is faster than general OpenStreetMap querying."
     )
     args_schema: Optional[Type[BaseModel]] = PoiInput
     response_format: str = "content_and_artifact"
