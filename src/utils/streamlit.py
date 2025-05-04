@@ -190,7 +190,7 @@ def add_pill_to_chat_input(pill):
 def write_comparison_messages(main_msg, alt_msg):
     choice_clicked = getattr(main_msg, 'choice_clicked', None)
     # Ensure random message order because of A/B testing
-    msg_A, msg_B = sorted([main_msg, alt_msg], key=lambda x: x.id.split('-')[1][0])
+    msg_A, msg_B = sorted([main_msg, alt_msg], key=lambda x: x.id[:14])
     element_id = f"{main_msg.id}_{alt_msg.id}"
 
     with st.chat_message("ai", avatar="🌿"):
@@ -253,7 +253,7 @@ def write_comparison_messages(main_msg, alt_msg):
                         st.warning("Please select an option before submitting.")
 
 def choose_preferred_message(main_msg, alt_msg, preferred_option):
-    msg_A, _ = sorted([main_msg, alt_msg], key=lambda x: x.id.split('-')[1][0])
+    msg_A, _ = sorted([main_msg, alt_msg], key=lambda x: x.id[:14])
     main_msg.choice_clicked = True
     alt_msg.choice_clicked = True
 
