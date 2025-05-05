@@ -7,4 +7,4 @@ from schemas.geometry import BoundingBox
 
 class TemperatureAnalysisInput(BaseModel):
     bounding_box: Annotated[BoundingBox, InjectedState("bounding_box")] = Field(..., description="Map bounding box coordinates.")
-    month: str = Field(..., description="Month in the format of MM.")
+    month: int = Field(..., description="Month as an integer (1-12).")
