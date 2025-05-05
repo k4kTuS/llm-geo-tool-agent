@@ -23,9 +23,10 @@ from config.project_paths import DATA_DIR
 class OSMTool(GeospatialTool):
     name: str = "get_open_street_map_features"
     description: str = (
-        "Retrieves points of interest from OpenStreetMap using the user's query. "
-        "The input query determines what features are retrieved based on similarity. "
-        "Query input must be a sentence, not a tag or a list of tags."
+        "Retrieves points of interest (POIs) from OpenStreetMap within a bounding box based on a natural language query. "
+        "The input query must be a descriptive sentence, not a tag or list of tags. "
+        "The tool uses semantic similarity to match the query to relevant OSM tag combinations, which are then used to fetch features. "
+        "Returns a summary of matched features grouped by OSM tag categories."
     )
     args_schema: Optional[Type[BaseModel]] = OSMInput
 

@@ -11,3 +11,4 @@ temp/*
 *.egg-info/
 build/
 dist/
+cache/

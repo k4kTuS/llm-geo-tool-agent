@@ -21,7 +21,7 @@ class CurrentWeatherTool(GeospatialTool):
     name: str = "current_weather"
     description: str = (
         "Retrieves current weather data for the bounding box. "
-        "It supports the following weather variables: temperature, humidity, precipitation, wind speed, gusts and direction, soil temperature and moisture"
+        "You'll recieve these weather variables: temperature, humidity, precipitation, wind speed, wind gusts, wind direction, soil temperature, soil moisture"
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
     response_format: str = "content_and_artifact"
@@ -42,11 +42,12 @@ class WeatherForecastTool(GeospatialTool):
     name: str = "weather_forecast"
     description: str = (
         "Retrieves weather forecast data for the bounding box. "
-        f"It supports both hourly and daily forecasts for up to {FORECAST_DAYS_MAX} days. "
-        "Does not support historical data. "
-        "\nCan provide the the following weather variables: "
-        "\nhourly data: temperature, humidity, precipitation, wind speed, gusts and direction, soil temperature and moisture"
-        "\ndaily data: max and min temperature, daylight and sunshine duration, precipitation and precipitation hours, wind speed, gusts and dominant direction"
+        f"Provides forecasts for up to {FORECAST_DAYS_MAX} days ahead - no historical data available."
+        "\nYou can request either:"
+        "\n- 'hourly' forecasts: giving detailed hour-by-hour predictions"
+        "\n- 'daily' forecasts: providing day-level summaries"
+        "\n\nFor hourly forecasts, you'll receive: temperature, humidity, precipitation, wind speed, wind gusts, wind direction, soil temperature, soil moisture."
+        "\nFor daily forecasts, you'll receive: max temperature, min temperature, daylight duration, sunshine duration, precipitation, precipitation hours, wind speed, wind gusts, dominant wind direction."
     )
     args_schema: Optional[Type[BaseModel]] = OpenmeteoForecastInput
     response_format: str = "content_and_artifact"

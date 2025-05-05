@@ -23,9 +23,9 @@ NO_DATA_STRINGS = ['-', '.', 'x', 'i.d.']
 class TourismTool(GeospatialTool):
     name: str = "get_tourism_data"
     description: str = (
-        "Provides historical tourism data for the bounding box. "
-        "Data is available for the Czech Republic only. "
-        "The result is a summary of yearly total tourist numbers for intersecting municipalities from 2012 to 2023."
+        "Retrieves historical tourism data for municipalities intersecting a given geographic bounding box. "
+        "Available only for regions within the Czech Republic. "
+        "Returns a yearly summary of total tourist visits from 2012 to 2023 for the intersecting municipalities."
     )
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
     response_format: str = "content_and_artifact"

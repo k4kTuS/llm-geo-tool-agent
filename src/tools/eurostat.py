@@ -17,7 +17,7 @@ EUROSTAT_GRID_SIZE = 1000
 
 class EurostatPopulationTool(GeospatialTool):
     name: str = "get_eurostat_population_data"
-    description: str = "Provides processed population data from eurostat for the bounding box."
+    description: str = "Provides total population and employed population data from eurostat for the bounding box."
     args_schema: Optional[Type[BaseModel]] = BaseGeomInput
     response_format: str = "content_and_artifact"
     boundary = box(-20.0, 30.0, 40.0, 70.0)

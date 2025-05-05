@@ -18,7 +18,8 @@ class TemperatureAnalysisTool(GeospatialTool):
     name: str = "get_monthly_average_temperature_last_5yrs"
     description: str = (
         "Provides monthly average temperature data for the bounding box. "
-        "Data is calculated as an average over the last five years from the ERA5 dataset."
+        "Returns the mean temperature calculated from ERA5 climate reanalysis data averaged over the last five years. "
+        "String representing the month as MM is a required input parameter."
     )
     args_schema: Optional[Type[BaseModel]] = TemperatureAnalysisInput
     boundary = box(-26.0, 33.9, 32.1, 74.0)
@@ -42,8 +43,10 @@ class TemperatureAnalysisTool(GeospatialTool):
 class TemperatureLongPredictionTool(GeospatialTool):
     name: str = "get_monthly_average_temperature_prediction_2030s"
     description: str = (
-        "Provides long term monthly temperature prediction for the bounding box."
-        "Prediction is based on the IPCC RCP45 scenario for the 2030s calculated by averaging the years 2021 to 2040."
+        "Provides long term monthly temperature prediction for the bounding box. "
+        "Predictions are based on the IPCC RCP4.5 climate scenario for the 2030s, calculated as the average "
+        "temperature over the period from 2021 to 2040. "
+        "String representing the month as MM is a required input parameter."
     )
     args_schema: Optional[Type[BaseModel]] = TemperatureAnalysisInput
 
